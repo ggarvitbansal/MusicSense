@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
-from typing import Optional, Any
+from typing import Optional
 from app.services.feature_extractor import FeatureExtractor
 
 router = APIRouter()
@@ -16,15 +16,22 @@ class AudioMetadata(BaseModel):
     sampleRate: int = Field(..., description="Sampling rate of the audio file in Hz")
     channels: int = Field(..., description="Number of audio channels (e.g. 1 for mono, 2 for stereo)")
     
-    # Placeholder fields for future sprint features to preserve API contract
+    # DSP features mapped in Sprint 1.3
     tempo: Optional[float] = Field(None, description="Estimated tempo in BPM")
     bpm: Optional[float] = Field(None, description="BPM estimation")
-    mfcc: Optional[list[list[float]]] = Field(None, description="Mel-frequency cepstral coefficients matrix")
-    chroma: Optional[list[list[float]]] = Field(None, description="Chroma feature matrix")
-    spectral_centroid: Optional[list[float]] = Field(None, description="Spectral centroid array")
-    rolloff: Optional[list[float]] = Field(None, description="Spectral rolloff array")
-    rms: Optional[list[float]] = Field(None, description="Root-mean-square energy array")
+    rms: Optional[list[float]] = Field(None, description="Root-mean-square energy envelope array")
     zero_crossing_rate: Optional[list[float]] = Field(None, description="Zero crossing rate array")
+    spectral_centroid: Optional[list[float]] = Field(None, description="Spectral centroid array")
+    spectral_bandwidth: Optional[list[float]] = Field(None, description="Spectral bandwidth array")
+    rolloff: Optional[list[float]] = Field(None, description="Spectral rolloff array")
+    
+    # Advanced features mapped in Sprint 1.4
+    mfcc: Optional[list[float]] = Field(None, description="Mean Mel-frequency cepstral coefficients (13 values)")
+    chroma: Optional[list[float]] = Field(None, description="Mean Chroma features (12 values)")
+    spectral_contrast: Optional[list[float]] = Field(None, description="Mean spectral contrast vector")
+    harmonic_energy: Optional[float] = Field(None, description="Normalized harmonic energy ratio")
+    percussive_energy: Optional[float] = Field(None, description="Normalized percussive energy ratio")
+    silence_ratio: Optional[float] = Field(None, description="Estimated silence ratio (percentage of low-energy frames)")
 
 class AnalysisResponse(BaseModel):
     """Output response model for audio analysis request."""
@@ -34,7 +41,7 @@ class AnalysisResponse(BaseModel):
 @router.post("/analyze", response_model=AnalysisResponse, status_code=status.HTTP_200_OK, tags=["analysis"])
 def analyze_audio(request: AnalysisRequest) -> AnalysisResponse:
     """
-    Validates request body and runs metadata extraction on the target audio file path.
+    Validates request body and runs digital signal processing (DSP) features extraction.
     
     Raises:
         HTTPException (404): If the target file is missing.
@@ -43,13 +50,26 @@ def analyze_audio(request: AnalysisRequest) -> AnalysisResponse:
     """
     extractor = FeatureExtractor()
     try:
-        raw_metadata = extractor.extract_metadata(request.filePath)
+        raw_metadata = extractor.extract_features(request.filePath)
         
-        # Populate AudioMetadata (Pydantic will ignore unset placeholders)
+        # Populate AudioMetadata and map computed properties
         metadata = AudioMetadata(
             duration=raw_metadata["duration"],
             sampleRate=raw_metadata["sampleRate"],
-            channels=raw_metadata["channels"]
+            channels=raw_metadata["channels"],
+            tempo=raw_metadata["tempo"],
+            bpm=raw_metadata["bpm"],
+            rms=raw_metadata["rms"],
+            zero_crossing_rate=raw_metadata["zero_crossing_rate"],
+            spectral_centroid=raw_metadata["spectral_centroid"],
+            spectral_bandwidth=raw_metadata["spectral_bandwidth"],
+            rolloff=raw_metadata["rolloff"],
+            mfcc=raw_metadata["mfcc"],
+            chroma=raw_metadata["chroma"],
+            spectral_contrast=raw_metadata["spectral_contrast"],
+            harmonic_energy=raw_metadata["harmonic_energy"],
+            percussive_energy=raw_metadata["percussive_energy"],
+            silence_ratio=raw_metadata["silence_ratio"]
         )
         
         return AnalysisResponse(success=True, metadata=metadata)
