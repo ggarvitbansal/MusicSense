@@ -18,10 +18,10 @@ A complex platform combining audio digital signal processing (DSP), relational s
 - **Deliverable Isolation**: Decouple components (e.g., frontend components from ML models) so that parallel development is unblocked.
 - **Measurable Milestones**: Maintain clear checklists for each phase to track engineering velocity.
 
-## Current Status
+### Current Status
 - **Current Phase**: Phase 5 — AI Processing (In Progress)
-- **Completed**: Phase 1 (Foundation), Phase 2 (Database schema & migrations), Phase 3 (Authentication backend foundation), and Phase 4 (Upload API & storage boundaries).
-- **Active Task**: Configuring the Python ML environment, setting up Librosa feature extraction pipelines, and preparing the TensorFlow model interface.
+- **Completed**: Phase 1 (Foundation), Phase 2 (Database schema & migrations), Phase 3 (Authentication backend foundation), Phase 4 (Upload API & storage boundaries), and Sprints 1.1-1.4 (FastAPI microservice setup, basic and advanced DSP feature extraction, modular refactoring).
+- **Active Task**: Stage 2 — Music DNA compilation (classifiers and key estimation models) and connecting the Express server upload handler.
 
 ## Future Scope
 Following Phase 5, the roadmap shifts to visual applications and deployment structures:
@@ -109,10 +109,14 @@ Ingest raw audio files into secure server storage.
 
 ### Phase 5 — AI Processing (In Progress)
 Build the audio intelligence worker service.
-- [ ] Setup Python 3.10 virtual environment and dependencies (TensorFlow, Librosa).
-- [ ] Write audio digital signal processing service using Librosa for feature extraction.
-- [ ] Build classification pipelines for genre and mood.
-- [ ] Configure REST interface (FastAPI) inside the ML service.
+- [x] Setup Python 3.10 virtual environment and dependencies (TensorFlow, Librosa).
+- [x] Write audio digital signal processing service using Librosa for feature extraction.
+- [x] Extract core metadata and basic DSP features (Sprint 1.2 & 1.3).
+- [x] Extract advanced acoustic and timbral features (Sprint 1.4).
+- [x] Refactor feature extraction into modular sub-packages under services/extractors (Sprint 1.4 Refactor).
+- [x] Synchronize architectural documentation layers (Documentation Sprint).
+- [ ] Build classification pipelines for genre and mood (Music DNA Compiler milestone).
+- [x] Configure REST interface (FastAPI) inside the ML service.
 - [ ] Connect the Express server upload handler to trigger ML analysis via HTTP.
 
 ### Phase 6 — Dashboard (Planned)

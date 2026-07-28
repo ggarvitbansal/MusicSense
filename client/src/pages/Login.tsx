@@ -1,10 +1,33 @@
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
+import API from "@/services/api";
 
 export default function Login() {
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
+    try {
+      const res = await API.post("/auth/login", { email, password });
+      if (res.data?.success && res.data?.data?.token) {
+        localStorage.setItem("token", res.data.data.token);
+        navigate("/dashboard");
+      } else {
+        setError("Invalid server response.");
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to sign in. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -15,12 +38,20 @@ export default function Login() {
           <h2 className="text-3xl font-bold text-white text-center mb-2">Welcome Back</h2>
           <p className="text-gray-400 text-center mb-8">Sign in to your MusicSense account</p>
 
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg p-3 text-sm mb-6 text-center">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
               <input 
                 type="email" 
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="you@example.com"
               />
@@ -31,6 +62,8 @@ export default function Login() {
               <input 
                 type="password" 
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="••••••••"
               />
@@ -38,9 +71,10 @@ export default function Login() {
 
             <Button 
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors cursor-pointer"
+              disabled={isLoading}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-55"
             >
-              Sign In
+              {isLoading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
 

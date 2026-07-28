@@ -5,12 +5,12 @@ The detailed design, structure, mathematical models, and application workflows o
 ---
 
 ## Overview
-Music DNA is the explicit, structured, human-readable semantic profile generated from raw audio signals. While raw audio represents physical sound waves and the **Music Genome** represents high-dimensional, implicit vector space embeddings, **Music DNA** translates these complex representations into standardized, structured, and queryable attributes. It acts as the descriptive metadata footprint of a song, capturing its acoustic properties, structural markers, emotional moods, and multi-label genres.
+Music DNA is the explicit, structured, human-readable semantic profile generated from raw audio signals. While raw audio represents physical sound waves, the **AudioFeatures** layer represents the intermediate physical/mathematical output of the digital signal processing (DSP) pipeline, and the **Music Genome** represents high-dimensional, implicit vector space embeddings. **Music DNA** translates these representations into standardized, structured, and queryable semantic attributes. It acts as the descriptive metadata footprint of a song, capturing its acoustic properties, structural markers, emotional moods, and multi-label genres.
 
 ## Purpose
 Raw amplitude time-series arrays and dense 128-dimensional floating-point vectors are unintuitive for users and cannot be filtered or indexed by standard database engines. 
 
-Music DNA exists to bridge this gap. By normalizing physical metrics (like frequency distributions, transients, and spectral energy) into understandable percentages and categories, Music DNA provides the database layer with concrete fields (e.g. `tempo`, `musicalKey`, `energy`, `danceability`) that power frontend filters, visual dashboard charts, search engines, and explainable recommendation systems.
+Music DNA exists to bridge this gap. By consuming the physical metrics of the **AudioFeatures** layer (such as frequency distributions, transients, and spectral energy) and passing them to classification models, the **Music DNA Compiler** compiles these metrics into understandable percentages and categories, providing the database layer with concrete fields (e.g. `energy`, `danceability`, `valence`) that power frontend filters, visual dashboard charts, search engines, and explainable recommendation systems.
 
 ## Design Goals
 - **Human Readability**: Map raw digital signal processing (DSP) and machine learning outputs to intuitive, semantic concepts.
@@ -19,7 +19,7 @@ Music DNA exists to bridge this gap. By normalizing physical metrics (like frequ
 - **Explainability**: Provide the foundation for explainable AI (XAI) features, enabling the system to tell users *why* two tracks are grouped together.
 
 ## Current Status
-The database schema (`Prisma`) supports a basic representation of Music DNA inside the `AudioAnalysis` model, including fields for `genre`, `tempo`, `musicalKey`, `mode`, `energy`, `danceability`, and `valence`. The ML pipeline is being designed to populate these attributes using Librosa and TensorFlow models during the import phase.
+Sprint 1.4 is complete. The Python ML service (`ml-service`) implements raw audio ingestion, single-load waveform reading, and extraction of physical and acoustic features as the **AudioFeatures** layer (comprising duration, sample rate, channels, tempo, RMS, ZCR, spectral centroid, spectral bandwidth, rolloff, spectral contrast, MFCC means, Chroma means, HPSS energies, and silence ratio). The next milestone is implementing the **Music DNA Compiler** to map these features to high-level semantic tags like `energy`, `danceability`, and `valence`, and writing them to the database schema.
 
 ## Future Scope
 We plan to expand the Music DNA structure to support:
@@ -32,20 +32,24 @@ We plan to expand the Music DNA structure to support:
 
 ---
 
-## Music DNA Pipeline & Architecture
+## Audio Feature & Music DNA Processing Flow
 
-The diagram below illustrates how raw audio is processed by the ML service to build the Music DNA record, and how that record subsequently powers the platform's core features.
+The diagram below illustrates how raw audio is loaded once to extract physical DSP parameters (`AudioFeatures`), how the `Music DNA Compiler` interprets these into a semantic `Music DNA` record, and how that record subsequently powers the platform's core features.
 
 ```mermaid
 graph TD
     Audio["Raw Audio File<br>(.mp3, .wav, .flac)"]
-    ML["Python ML Service<br>(Librosa / TensorFlow)"]
+    ML["Python ML Service<br>(FastAPI / Librosa)"]
     
-    subgraph Music DNA Compilation
-        Acoustic["1. Acoustic Processing<br>(BPM, Key, Energy, Danceability)"]
-        Mood["2. Mood Classification<br>(Valence-Arousal Grid Mapping)"]
-        Genre["3. Genre Classification<br>(Multi-label Probability Vector)"]
-        Struct["4. Structural Segmentation<br>(Intro / Verse / Chorus / Outro)"]
+    subgraph AudioFeatures Layer
+        DSP["Feature Extraction Pipeline<br>(Duration, Sample Rate, Channels, Tempo, RMS, ZCR, Spectral features, MFCC, Chroma, HPSS, Silence Ratio)"]
+    end
+    
+    subgraph Music DNA Compiler
+        Semantic["Semantic Interpretation<br>(Energy, Danceability, Valence, Acousticness, Instrumentalness, Speechiness)"]
+        Mood["Mood Classification<br>(Valence-Arousal Grid Mapping)"]
+        Genre["Genre Classification<br>(Multi-label Probability Vector)"]
+        Struct["Structural Segmentation<br>(Intro / Verse / Chorus / Outro)"]
     end
     
     DB[("PostgreSQL Database<br>(AudioAnalysis Schema)")]
@@ -59,12 +63,13 @@ graph TD
     end
 
     Audio --> ML
-    ML --> Acoustic
-    ML --> Mood
-    ML --> Genre
-    ML --> Struct
+    ML --> DSP
+    DSP --> Semantic
+    DSP --> Mood
+    DSP --> Genre
+    DSP --> Struct
     
-    Acoustic --> DB
+    Semantic --> DB
     Mood --> DB
     Genre --> DB
     Struct --> DB
@@ -78,15 +83,20 @@ graph TD
 
 ---
 
-## Philosophy: DNA vs. Genome
-Within MusicSense, we maintain a clear distinction between the two foundational representation layers:
+## Philosophy: AudioFeatures vs. DNA vs. Genome
+Within MusicSense, we maintain a clear distinction across these three representation layers:
 
-1. **Music DNA (Semantic & Explanatory)**:
-   * Consists of explicit, normalized features (e.g., Key: G Minor, Tempo: 120 BPM, Acousticness: 12%).
+1. **AudioFeatures (Physical & Mathematical)**:
+   * Consists of direct, raw digital signal processing (DSP) parameters extracted from the audio waveform (e.g. sample rate, channels, RMS energy curve, zero crossing rates, spectral centroid, MFCC means, Chroma pitch vectors).
+   * It represents the objective physical characteristics of sound waves and acts as the input to classification and embedding models.
+   * *Analogy: The raw data from a biometric scanner (fingerprint scans, facial measurements).*
+
+2. **Music DNA (Semantic & Explanatory)**:
+   * Consists of interpreted, human-readable semantic concepts compiled from the `AudioFeatures` layer (e.g., Key: G Minor, Tempo: 120 BPM, Energy: 68%, Danceability: 74%, mood profiles).
    * It is human-readable, easily queryable via standard SQL, and used to generate charts and explain relationships.
    * *Analogy: The physical description of a person (height, eye color, hair color).*
 
-2. **Music Genome (Geometric & Latent)**:
+3. **Music Genome (Geometric & Latent)**:
    * Consists of implicit, high-dimensional vector embeddings (128-dimensional float arrays).
    * It is processed mathematically using vector distance formulas (like cosine similarity) and is optimized for capturing abstract sonic textures and patterns.
    * *Analogy: The actual biological DNA sequence, containing deep, non-obvious relationship indicators.*

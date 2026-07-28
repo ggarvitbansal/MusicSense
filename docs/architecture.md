@@ -107,7 +107,7 @@ The backend is a Node.js Express REST application built with TypeScript, acting 
 The ML service operates as a dedicated microservice optimized for CPU-bound computations and scientific data structures.
 - **Technology Stack**: Python 3.10, FastAPI, Librosa, NumPy, TensorFlow 2.x, SciPy.
 - **Interface**: FastAPI hosts a REST interface that exposes endpoints like `/analyze` and `/health`, using Pydantic models for request and response validation.
-- **Analysis Pipeline**: Decodes audio formats, normalizes sampling rates to 22,050 Hz mono, extracts spectrogram features (MFCCs, Chroma), and runs model inference to output Music DNA and 128D Genome vectors.
+- **Analysis Pipeline**: Decodes audio formats, loads the audio waveform once, and extracts core properties and acoustic features (Duration, Sample Rate, Channels, Tempo, RMS, ZCR, Spectral Centroid, Spectral Bandwidth, Spectral Roll-off, Spectral Contrast, MFCCs, Chroma, HPSS energies, and Silence Ratio) as an `AudioFeatures` object. This object acts as the input to the downstream semantic interpretation layer (Music DNA Compiler) and latent space embeddings (`MusicGenome`).
 
 ---
 
@@ -231,7 +231,7 @@ sequenceDiagram
     API-->>Client: 201 Created (Upload successful)
     
     Queue->>ML: Pull job { fileId, path }
-    Note over ML: 1. Decode & Downsample to 22050Hz Mono<br/>2. Extract Spectrogram, MFCCs, Chroma<br/>3. Run TensorFlow CNN Inference
+    Note over ML: 1. Verify File & Load Waveform Once<br/>2. Extract AudioFeatures (DSP output)<br/>3. Compile Music DNA (Future)<br/>4. Generate Music Genome embeddings
     ML->>DB: Save AudioAnalysis (DNA features & 128D embedding)
     ML->>DB: Update AudioFile status to COMPLETED
     ML-->>Queue: Job completed successfully

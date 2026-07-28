@@ -18,9 +18,10 @@ The ML roadmap defines the engineering path to bridge the gap between time-domai
 - **Explainability**: Architect models so that intermediate features can be extracted and explained to the user (e.g. mapping high-level metrics like "energy" directly to spectral characteristics).
 - **Scalability**: Build modular pipelines where feature extraction algorithms can be updated or replaced without modifying downstream database or API interfaces.
 
-## Current Status
-- **Current Stage**: Stage 1 — Audio Preprocessing & Feature Extraction.
-- **Active Task**: Designing the Librosa feature extraction script and defining the input dimensions for the convolutional neural networks.
+### Current Status
+- **Current Stage**: Stage 1 — Audio Preprocessing & Feature Extraction (Complete).
+- **Completed Sprint**: Sprint 1.4 completed advanced DSP feature extraction (producing `AudioFeatures`).
+- **Active Task**: Stage 2 — High-Level Musicality & Music DNA compilation (incorporating classifiers and key profilers).
 
 ## Future Scope
 As the platform matures, we plan to transition from simple classification models to joint text-audio contrastive learning spaces (CLAP), enabling true natural language query mapping ("Search by Feeling") and interactive AI assistants.
@@ -36,56 +37,54 @@ As the platform matures, we plan to transition from simple classification models
 ```mermaid
 graph TD
     Audio["Raw Audio File<br>(.mp3, .wav, .flac)"]
-    Decoder["1. Librosa Audio Decoder<br>(Downsample to 22050Hz Mono)"]
-    DSP["2. Digital Signal Processing<br>(Short-Time Fourier Transform)"]
+    Decoder["1. Audio Decoder & Ingestion<br>(Load Waveform Once)"]
     
-    subgraph Feature Extraction
-        Chroma["Chroma STFT<br>(Harmonics / Key / Mode)"]
-        MelSpec["Mel-Spectrogram<br>(Frequency Spectrum over Time)"]
-        MFCC["MFCCs<br>(Timbral / Texture)"]
-        Onset["Onset Envelope<br>(Tempo / Beats / Transient)"]
+    subgraph AudioFeatures Layer (DSP Output)
+        Tempo["Tempo & BPM<br>(Onset strength envelope)"]
+        Energy["RMS Energy & ZCR<br>(Envelope dynamics)"]
+        Spectral["Spectral Attributes<br>(Centroid, Bandwidth, Rolloff, Contrast)"]
+        Timbral["Timbre Features<br>(13 MFCC Means)"]
+        Chroma["Harmonic Features<br>(12 Chroma STFT Means)"]
+        HPSS["HPSS Separator<br>(Normalized energies)"]
+        Silence["Silence Ratio<br>(Low energy percentage)"]
     end
     
-    subgraph Inference Models
-        CNN_Genre["CNN Genre Classifier<br>(Multi-label Softmax)"]
-        CNN_Mood["CNN Mood Classifier<br>(Valence-Arousal Sigmoid)"]
-        Tempo_Est["Tempo Tracker<br>(Autocorrelation / PLP)"]
-        Key_Est["Key Profiler<br>(Template Matching)"]
+    subgraph Music DNA Compiler (Semantic Layer)
+        Semantic["Semantic Attributes<br>(Energy, Danceability, Valence, Acousticness, Instrumentalness, Speechiness)"]
+        Mood["CNN Mood Classifier<br>(Valence-Arousal Grid)"]
+        Genre["CNN Genre Classifier<br>(Multi-label probability)"]
+        Struct["Structural Segmenter<br>(Intro / Verse / Chorus / Outro)"]
     end
     
-    subgraph Platform Outputs
-        Embed["Genome Embedding<br>(Intermediate Latent Vector)"]
-        DNA["Music DNA Profile<br>(Structured JSON Metadata)"]
+    subgraph Music Genome Layer (Embedding Layer)
+        Embed["Genome Embedding<br>(128D Latent Vector)"]
     end
-
+    
     Audio --> Decoder
-    Decoder --> DSP
-    DSP --> Chroma
-    DSP --> MelSpec
-    DSP --> MFCC
-    DSP --> Onset
+    Decoder --> Tempo
+    Decoder --> Energy
+    Decoder --> Spectral
+    Decoder --> Timbral
+    Decoder --> Chroma
+    Decoder --> HPSS
+    Decoder --> Silence
     
-    Chroma --> Key_Est
-    MelSpec --> CNN_Genre
-    MFCC --> CNN_Mood
-    Onset --> Tempo_Est
+    Tempo & Energy & Spectral & Timbral & Chroma & HPSS & Silence --> Semantic
+    Tempo & Energy & Spectral & Timbral & Chroma & HPSS & Silence --> Mood
+    Tempo & Energy & Spectral & Timbral & Chroma & HPSS & Silence --> Genre
+    Tempo & Energy & Spectral & Timbral & Chroma & HPSS & Silence --> Struct
     
-    CNN_Genre --> DNA
-    CNN_Mood --> DNA
-    Tempo_Est --> DNA
-    Key_Est --> DNA
-    
-    %% Bottleneck extraction
-    CNN_Genre -- "Extract Intermediate Layer" --> Embed
-    CNN_Mood -- "Extract Intermediate Layer" --> Embed
+    Semantic & Mood & Genre & Struct --> Embed
 ```
 
 ---
 
 ## ML Development Stages
 
-### Stage 1 — Audio Preprocessing & Feature Extraction
-Establish the digital signal processing (DSP) foundations required for neural network inputs.
+### Stage 1 — Audio Preprocessing & Feature Extraction (Complete)
+Establish the digital signal processing (DSP) foundations and extract the physical `AudioFeatures` parameter set.
+
+*(Note: Preprocessing, modular single-load DSP extraction, and advanced features including MFCCs, Chroma, Contrast, HPSS, and Silence ratios are completed. These are structured under the AudioFeatures layer as inputs for Stage 2 classifiers).*
 
 #### 1. Audio Preprocessing Pipeline
 - **Format Decoding**: Convert compressed formats (MP3, FLAC, M4A) into raw floating-point arrays.

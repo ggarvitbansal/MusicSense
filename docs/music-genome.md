@@ -77,7 +77,7 @@ A song embedding is a 128-dimensional vector composed of floating-point numbers,
 $$\mathbf{v} = [x_1, x_2, x_3, \dots, x_{128}], \quad x_i \in \mathbb{R}$$
 
 ### Extraction Mechanism
-During Phase 5 (AI Processing), when an audio file is ingested, the system downsamples it, computes Mel-frequency spectrograms, and feeds them into a convolutional neural network. 
+During Phase 5 (AI Processing), when an audio file is ingested, the system loads the waveform once, extracts its core `AudioFeatures`, and computes Mel-frequency spectrograms which are then fed into the convolutional neural networks. 
 
 Rather than extracting the final output layer (which yields genre and mood probability distributions for the Music DNA), the system extracts the activations from the **intermediate bottleneck layer** (the fully connected layer right before the classification heads). This latent space captures rich, unlabelled acoustic textures (e.g. percussion pattern densities, vocal timbres, frequency envelopes) that are lost in the final classification.
 

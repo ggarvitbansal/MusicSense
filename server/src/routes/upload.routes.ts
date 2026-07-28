@@ -12,5 +12,6 @@ router.post("/", uploadAudioMiddleware, uploadController.createUpload);
 router.get("/", uploadController.getUploads);
 router.get("/:id", uploadController.getUploadById);
 router.delete("/:id", uploadController.deleteUpload);
+router.post("/:id/analyze", uploadController.analyzeUpload);
 
 export default router;

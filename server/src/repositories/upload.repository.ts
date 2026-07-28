@@ -30,6 +30,13 @@ export class UploadRepository {
     });
   }
 
+  async updateStatus(id: string, status: UploadStatus) {
+    return prisma.audioFile.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
   async delete(id: string) {
     return prisma.audioFile.delete({
       where: { id },

@@ -100,3 +100,8 @@ When writing code for MusicSense:
 2. **Clarify Intent**: If user requirements or business rules are ambiguous, ask clarifying questions instead of making assumptions.
 3. **Minimize Churn**: Keep code changes compact and targeted. Reuse existing assets and logic.
 4. **Type Enforce**: Write typed contracts for all API payloads and internal modules.
+5. **Architectural Vocabulary Boundaries**: Maintain a strict separation between physical DSP features, semantic metadata, and latent vector spaces:
+   - **Feature Extraction**: The process of parsing raw time-series waveforms to extract objective, mathematical parameters.
+   - **AudioFeatures (DSP Layer)**: The direct output parameters of the extraction pipeline (duration, sample rate, channels, tempo, RMS, ZCR, spectral centroid/bandwidth/rolloff/contrast, MFCCs, Chroma, HPSS, and silence ratio). Mapped to `AudioMetadata` schema inside FastAPI.
+   - **Music DNA (Semantic Layer)**: Human-readable interpreted properties (e.g. Energy, Danceability, Valence, Camelot keys, mood profiles, multi-label genres) compiled by the upcoming `Music DNA Compiler` consuming the `AudioFeatures` inputs.
+   - **Music Genome (Embedding Layer)**: Dense 128D latent vector representations for geometric Nearest-Neighbor vector matching.

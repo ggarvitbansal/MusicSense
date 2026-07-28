@@ -16,7 +16,7 @@ This document provides a single source of truth for the product roadmap. It assi
 - **Scalability**: Structure features so they can be implemented iteratively without breaking existing database schemas or route controllers.
 
 ## Current Status
-The upload pipeline and authentication layers are operational. The core ML feature-extraction service is currently being designed inside the `ml-service` module. None of the advanced features listed in this catalog have been implemented.
+Sprint 1.4 is complete. The core ML feature extraction service operates as a FastAPI project, successfully extracting the **AudioFeatures** layer (including duration, sample rate, channels, tempo, RMS, ZCR, spectral centroid, spectral bandwidth, rolloff, spectral contrast, MFCC means, Chroma means, HPSS energies, and silence ratio). The next milestone is compiling these physical measurements into semantic Music DNA records (such as energy, danceability, valence, and key profiles).
 
 ## Future Scope
 This catalog represents the complete multi-year product roadmap. Features are prioritized into High, Medium, and Low buckets to guide sprint planning, model training phases, and UI releases.
@@ -56,8 +56,8 @@ graph TD
 
 ---
 
-## 1. AI Analysis
-Core DSP and machine learning pipelines that run inference on raw audio files to extract low-level and high-level descriptors.
+## 1. AI Analysis (AudioFeatures Layer)
+Core DSP and feature extraction pipelines that ingest raw audio waveforms and extract low-level physical metrics and mathematical features. These form the **AudioFeatures** layer (implemented in FastAPI via Librosa and specialized modules), which is consumed by downstream classifiers to produce semantic Music DNA.
 
 ### F-101: Multi-label Genre Prediction
 - **Description**: Predict multiple genres with corresponding probability scores for a single track.
