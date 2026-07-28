@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 from typing import Optional
 from app.services.feature_extractor import FeatureExtractor
+from app.services.dna_service import MusicDNAService
 
 router = APIRouter()
 
@@ -33,15 +34,28 @@ class AudioMetadata(BaseModel):
     percussive_energy: Optional[float] = Field(None, description="Normalized percussive energy ratio")
     silence_ratio: Optional[float] = Field(None, description="Estimated silence ratio (percentage of low-energy frames)")
 
+class MusicDNA(BaseModel):
+    """Semantic interpretation layer model (Music DNA) representing human-readable characteristics."""
+    energy: float = Field(..., description="Intensity and activity level (0-100)")
+    brightness: float = Field(..., description="Timbral brightness and high frequency presence (0-100)")
+    rhythm: float = Field(..., description="Rhythmic energy and tempo strength (0-100)")
+    harmonicRichness: float = Field(..., description="Chroma and harmonic density (0-100)")
+    danceability: float = Field(..., description="Rhythmic stability and pulse clarity (0-100)")
+    acousticness: float = Field(..., description="Probability or level of acoustic instruments vs electronic (0-100)")
+    complexity: float = Field(..., description="Spectral variance and bandwidth spread (0-100)")
+    silence: float = Field(..., description="Percentage of silence / low-energy frames (0-100)")
+
 class AnalysisResponse(BaseModel):
     """Output response model for audio analysis request."""
     success: bool
     metadata: AudioMetadata
+    musicDNA: MusicDNA = Field(..., description="Semantic interpreted Music DNA features")
 
 @router.post("/analyze", response_model=AnalysisResponse, status_code=status.HTTP_200_OK, tags=["analysis"])
 def analyze_audio(request: AnalysisRequest) -> AnalysisResponse:
     """
-    Validates request body and runs digital signal processing (DSP) features extraction.
+    Validates request body, runs digital signal processing (DSP) features extraction,
+    and compiles the deterministic Music DNA semantic metrics.
     
     Raises:
         HTTPException (404): If the target file is missing.
@@ -49,6 +63,7 @@ def analyze_audio(request: AnalysisRequest) -> AnalysisResponse:
         HTTPException (500): For general analysis failure.
     """
     extractor = FeatureExtractor()
+    dna_service = MusicDNAService()
     try:
         raw_metadata = extractor.extract_features(request.filePath)
         
@@ -72,7 +87,24 @@ def analyze_audio(request: AnalysisRequest) -> AnalysisResponse:
             silence_ratio=raw_metadata["silence_ratio"]
         )
         
-        return AnalysisResponse(success=True, metadata=metadata)
+        # Compile Music DNA profile
+        raw_dna = dna_service.compile_dna(raw_metadata)
+        music_dna = MusicDNA(
+            energy=raw_dna["energy"],
+            brightness=raw_dna["brightness"],
+            rhythm=raw_dna["rhythm"],
+            harmonicRichness=raw_dna["harmonicRichness"],
+            danceability=raw_dna["danceability"],
+            acousticness=raw_dna["acousticness"],
+            complexity=raw_dna["complexity"],
+            silence=raw_dna["silence"]
+        )
+        
+        return AnalysisResponse(
+            success=True,
+            metadata=metadata,
+            musicDNA=music_dna
+        )
         
     except FileNotFoundError as e:
         raise HTTPException(
