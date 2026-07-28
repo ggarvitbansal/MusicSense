@@ -170,7 +170,7 @@ Git Commit
 
 ✅ Prisma
 
-⬜ Authentication
+✅ Authentication
 
 ⬜ Upload Pipeline
 
@@ -190,3 +190,18 @@ Git Commit
 - **PostgreSQL Database**: Stores relational structured metadata for users, settings, uploaded music files, and AI-driven audio analysis results.
 - **Local Uploads Directory (`server/uploads/`)**: Used for storing raw audio files (`.mp3`, `.wav`, `.flac`) locally during the initial development phase (MVP). A unique stored name is generated for each file to prevent naming collisions.
 - **Future Migration Ready**: Database schemas separate physical file paths from logical database entities, allowing seamless transition to cloud object storage (e.g. AWS S3 or Google Cloud Storage) in production.
+
+---
+
+# Authentication Layer
+
+## Authentication Protocol
+- **JWT (JSON Web Token)**: Standard authentication protocol utilizing signed stateless tokens. 
+- JWT payload contains the `userId` and user `email`.
+- Tokens are passed via the standard `Authorization: Bearer <JWT_TOKEN>` HTTP header.
+
+## Password Protection
+- **BCrypt**: Hashing algorithms with 10 salt rounds are used to hash raw user passwords before database storage. Raw passwords are never stored or logged.
+
+## Route Security
+- **`authenticateJWT` Middleware**: Parses and validates incoming token signatures against the server's `JWT_SECRET`. Unauthorized requests (missing, invalid, or expired tokens) are immediately rejected with a `401 Unauthorized` response. Successful requests append user metadata to the Request context (`req.user`) for downstream routing handler consumption.

@@ -12,3 +12,4 @@ Each ADR documents:
 ## Decisions List
 
 - [ADR-0001: Local File Storage Strategy](file:///c:/Users/GARVIT_BANSAL/Projects/MusicSense/docs/adr/0001-local-file-storage.md)
+- [ADR-0002: JWT Authentication Strategy](file:///c:/Users/GARVIT_BANSAL/Projects/MusicSense/docs/adr/0002-jwt-authentication.md)

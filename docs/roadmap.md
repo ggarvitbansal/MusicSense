@@ -1,12 +1,12 @@
 ## Current Milestone
 
-**Authentication**
+**Music Upload**
 
 Current Task:
-- Implement User Registration API & Page
-- Implement Login API & Page
-- Implement JWT session middleware
-- Set up protected route checks
+- Build file upload component frontend page
+- Build server-side upload storage handler
+- Validate uploaded audio files (mp3, wav, flac)
+- Parse track metadata (duration, format, bitrates)
 # MusicSense Development Roadmap
 
 This document tracks the planned development of MusicSense.
@@ -64,29 +64,29 @@ Deliverables
 
 # Phase 3 — Authentication
 
-Status: Planned
+Status: Complete (Backend Foundation Complete)
 
 Goals
 
-- User registration
-- Login
-- JWT authentication
-- Password hashing
-- Protected routes
-- Authentication middleware
+- [x] User registration API
+- [x] Login API
+- [x] JWT authentication
+- [x] Password hashing
+- [x] Protected routes
+- [x] Authentication middleware
 
 Deliverables
 
-- Register page
-- Login page
-- Authentication API
-- Session persistence
+- [ ] Register page (Frontend)
+- [ ] Login page (Frontend)
+- [x] Authentication API
+- [x] Session verification helper
 
 ---
 
 # Phase 4 — Music Upload
 
-Status: Planned
+Status: In Progress
 
 Goals
 
