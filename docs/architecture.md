@@ -172,7 +172,7 @@ Git Commit
 
 ✅ Authentication
 
-⬜ Upload Pipeline
+✅ Upload Pipeline
 
 ⬜ AI Processing
 
@@ -205,3 +205,21 @@ Git Commit
 
 ## Route Security
 - **`authenticateJWT` Middleware**: Parses and validates incoming token signatures against the server's `JWT_SECRET`. Unauthorized requests (missing, invalid, or expired tokens) are immediately rejected with a `401 Unauthorized` response. Successful requests append user metadata to the Request context (`req.user`) for downstream routing handler consumption.
+
+---
+
+# File Upload Layer
+
+## File Interception & Storage
+- **Multer Middleware**: Used to handle multipart/form-data audio file uploads.
+- **Local Sandbox Directory**: Uploaded files are streamed into `server/uploads/` with UUID names (e.g., `550e8400-e29b-41d4-a716-446655440000.mp3`) to prevent file collisions and conceal physical file structures.
+
+## Validations & Constraints
+- **File Constraints**: Maximum file size is strictly capped at **25 MB**. 
+- **Format Validation**: Only formats `.mp3`, `.wav`, `.flac`, `.ogg`, and `.m4a` are permitted. 
+- **MIME & Extension Alignment**: Verified at both the Multer filter layer and the controller layer to prevent upload bypass attacks.
+
+## Relational Records & Lifecycle
+- **Database Mapping**: Upload metadata is recorded inside the `AudioFile` schema (capturing original names, size, path, mimetype, extension, and status).
+- **Upload Statuses**: Managed via `UploadStatus` enum (`UPLOADED`, `PROCESSING`, `COMPLETED`, `FAILED`).
+- **Cascading Deletions**: Deleting an upload deletes the matching database record and triggers filesystem cleanup of the physical file using `fs.unlink`. Deleting a User account automatically deletes all related uploads and clears their storage footprints.

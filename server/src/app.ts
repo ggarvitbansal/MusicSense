@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
 
 import { Prisma } from "@prisma/client";
 
@@ -18,6 +19,9 @@ app.get("/", (_req, res) => {
 
 // Auth Routes
 app.use("/auth", authRoutes);
+
+// Upload Routes
+app.use("/uploads", uploadRoutes);
 
 // Central Error Handler
 app.use((

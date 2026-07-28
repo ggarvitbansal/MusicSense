@@ -1,12 +1,12 @@
 ## Current Milestone
 
-**Music Upload**
+**AI Processing**
 
 Current Task:
-- Build file upload component frontend page
-- Build server-side upload storage handler
-- Validate uploaded audio files (mp3, wav, flac)
-- Parse track metadata (duration, format, bitrates)
+- Set up Python ML environment (Librosa, TensorFlow)
+- Build core audio feature extraction service
+- Build genre classification model pipeline
+- Connect ML pipeline batch orchestration
 # MusicSense Development Roadmap
 
 This document tracks the planned development of MusicSense.
@@ -86,32 +86,34 @@ Deliverables
 
 # Phase 4 — Music Upload
 
-Status: In Progress
+Status: Complete (Backend Foundation Complete)
 
 Goals
 
-- Upload audio files
-- File validation
-- Metadata extraction
-- Secure storage
+- [x] Upload audio files
+- [x] File validation (size & extension)
+- [x] Metadata mapping (size, original/stored name)
+- [x] Secure storage (UUID concealment)
 
 Supported Formats
 
 - MP3
 - WAV
 - FLAC
+- OGG
+- M4A
 
 Deliverables
 
-- Upload page
-- Upload API
-- Storage layer
+- [ ] Upload page (Frontend)
+- [x] Upload API
+- [x] Storage layer (local sandbox uploads directory)
 
 ---
 
 # Phase 5 — AI Processing
 
-Status: Planned
+Status: In Progress
 
 Goals
 
