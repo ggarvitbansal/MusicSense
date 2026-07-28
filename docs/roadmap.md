@@ -1,12 +1,12 @@
 ## Current Milestone
 
-**Frontend Foundation**
+**Authentication**
 
 Current Task:
-- Build Landing Page
-- Build Base Layout
-- Review UI
-- Commit milestone
+- Implement User Registration API & Page
+- Implement Login API & Page
+- Implement JWT session middleware
+- Set up protected route checks
 # MusicSense Development Roadmap
 
 This document tracks the planned development of MusicSense.
@@ -17,14 +17,14 @@ The goal is to build the project incrementally, with each milestone resulting in
 
 # Phase 1 — Foundation
 
-Status: In Progress
+Status: Complete
 
 ## Backend
 
 - [x] Express
 - [x] TypeScript
 - [x] Basic API
-- [ ] Environment Configuration
+- [x] Environment Configuration
 - [ ] Error Handling Middleware
 
 ## Frontend
@@ -35,30 +35,30 @@ Status: In Progress
 - [x] shadcn/ui
 - [x] React Router
 - [x] Axios
-- [ ] Base Layout
-- [ ] Landing Page
+- [x] Base Layout
+- [x] Landing Page
 
 ---
 
 # Phase 2 — Database
 
-Status: Planned
+Status: Complete
 
 Goals
 
-- PostgreSQL setup
-- Prisma ORM
-- Database schema
-- Migrations
-- Seed script
+- [x] PostgreSQL setup
+- [x] Prisma ORM
+- [x] Database schema
+- [x] Migrations
+- [x] Seed script
 
 Deliverables
 
-- User model
-- Upload model
-- Analysis model
-- Relationships
-- Database connection
+- [x] User model
+- [x] Upload model
+- [x] Analysis model
+- [x] Relationships
+- [x] Database connection
 
 ---
 

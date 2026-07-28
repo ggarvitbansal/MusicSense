@@ -164,11 +164,11 @@ Git Commit
 - React Router
 - Axios
 
-⬜ Landing Page
+✅ Landing Page
 
-⬜ PostgreSQL
+✅ PostgreSQL
 
-⬜ Prisma
+✅ Prisma
 
 ⬜ Authentication
 
@@ -177,3 +177,16 @@ Git Commit
 ⬜ AI Processing
 
 ⬜ Dashboard
+
+---
+
+# Database & Storage Layer
+
+## Database ORM
+- **Prisma ORM** is used for schema definitions, migrations, and type-safe database queries.
+- Database connection details are configured via the `DATABASE_URL` environment variable.
+
+## Data Storage Strategy
+- **PostgreSQL Database**: Stores relational structured metadata for users, settings, uploaded music files, and AI-driven audio analysis results.
+- **Local Uploads Directory (`server/uploads/`)**: Used for storing raw audio files (`.mp3`, `.wav`, `.flac`) locally during the initial development phase (MVP). A unique stored name is generated for each file to prevent naming collisions.
+- **Future Migration Ready**: Database schemas separate physical file paths from logical database entities, allowing seamless transition to cloud object storage (e.g. AWS S3 or Google Cloud Storage) in production.
