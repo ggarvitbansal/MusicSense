@@ -1,0 +1,26 @@
+# Python Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Environment Variables
+.env
+
+# Model Files and Large Binaries
+*.h5
+*.pb
+*.model
+*.pkl
+*.npy
+*.npz
+uploads/
