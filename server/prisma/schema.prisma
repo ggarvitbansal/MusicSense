@@ -1,12 +1,95 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  analyses     Analysis[]
+  audioFiles   AudioFile[]
+  musicFiles   MusicFile[]
+  settings     UserSettings?
+}
+
+model MusicFile {
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @db.Uuid
+  originalName String
+  storedName   String
+  storagePath  String
+  mimeType     String
+  format       String
+  fileSize     Int
+  duration     Float
+  uploadedAt   DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  analysis     AudioAnalysis?
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AudioAnalysis {
+  id              String      @id @default(uuid()) @db.Uuid
+  musicFileId     String      @unique @db.Uuid
+  genre           String
+  tempo           Float
+  energy          Float
+  danceability    Float
+  valence         Float
+  analysisVersion String
+  createdAt       DateTime    @default(now())
+  musicalKey      String
+  updatedAt       DateTime    @updatedAt
+  mode            MusicalMode
+  musicFile       MusicFile   @relation(fields: [musicFileId], references: [id], onDelete: Cascade)
+}
+
+model UserSettings {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @unique @db.Uuid
+  theme          String    @default("dark")
+  notifications  Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  preferredModel ModelType @default(TENSORFLOW)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AudioFile {
+  id           String       @id @default(uuid()) @db.Uuid
+  userId       String       @db.Uuid
+  originalName String
+  storedName   String
+  mimeType     String
+  extension    String
+  size         Int
+  path         String
+  status       UploadStatus
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  analysis     Analysis?
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Analysis {
+  id            String    @id @default(uuid()) @db.Uuid
+  audioFileId   String    @unique @db.Uuid
+  userId        String    @db.Uuid
+  filename      String
+  metadata      Json
+  audioFeatures Json
+  musicDNA      Json
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  audioFile     AudioFile @relation(fields: [audioFileId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum MusicalMode {
@@ -23,90 +106,4 @@ enum UploadStatus {
   PROCESSING
   COMPLETED
   FAILED
-}
-
-model User {
-  id           String        @id @default(uuid()) @db.Uuid
-  name         String
-  email        String        @unique
-  passwordHash String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  musicFiles   MusicFile[]
-  audioFiles   AudioFile[]
-  analyses     Analysis[]
-  settings     UserSettings?
-}
-
-model MusicFile {
-  id           String         @id @default(uuid()) @db.Uuid
-  userId       String         @db.Uuid
-  originalName String
-  storedName   String
-  storagePath  String
-  mimeType     String
-  format       String
-  fileSize     Int
-  duration     Float
-  uploadedAt   DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  analysis     AudioAnalysis?
-}
-
-model AudioAnalysis {
-  id              String      @id @default(uuid()) @db.Uuid
-  musicFileId     String      @unique @db.Uuid
-  genre           String
-  tempo           Float
-  musicalKey      String
-  mode            MusicalMode
-  energy          Float
-  danceability    Float
-  valence         Float
-  analysisVersion String
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  musicFile       MusicFile   @relation(fields: [musicFileId], references: [id], onDelete: Cascade)
-}
-
-model UserSettings {
-  id             String    @id @default(uuid()) @db.Uuid
-  userId         String    @unique @db.Uuid
-  theme          String    @default("dark")
-  preferredModel ModelType @default(TENSORFLOW)
-  notifications  Boolean   @default(true)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model AudioFile {
-  id           String       @id @default(uuid()) @db.Uuid
-  userId       String       @db.Uuid
-  originalName String
-  storedName   String
-  mimeType     String
-  extension    String
-  size         Int
-  path         String
-  status       UploadStatus
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  analysis     Analysis?
-}
-
-model Analysis {
-  id            String      @id @default(uuid()) @db.Uuid
-  audioFileId   String      @unique @db.Uuid
-  userId        String      @db.Uuid
-  filename      String
-  metadata      Json
-  audioFeatures Json
-  musicDNA      Json
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  audioFile     AudioFile   @relation(fields: [audioFileId], references: [id], onDelete: Cascade)
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
