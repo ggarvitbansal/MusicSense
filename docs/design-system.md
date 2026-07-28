@@ -1,320 +1,106 @@
 # MusicSense Design System
 
-## Philosophy
-
-MusicSense should feel like a modern SaaS product rather than a flashy AI demo.
-
-Design priorities:
-
-1. Clarity over decoration
-2. Consistency over creativity
-3. Simplicity over complexity
-4. Accessibility over visual effects
-5. Performance over unnecessary animations
-
-The UI should feel inspired by products such as:
-
-- Spotify
-- Vercel
-- Linear
-- GitHub
-- Notion
+The visual guidelines, design tokens, component rules, and layout constraints powering the user interface of MusicSense: An AI-powered Music Intelligence Platform.
 
 ---
 
-# Design Language
+## Overview
+This document defines the design tokens, visual constraints, and interface guidelines for the MusicSense frontend application. Built on top of Tailwind CSS and shadcn/ui, the design system provides a unified set of spacing, color, typographic, and component rules. These rules ensure that all interfaces remain clean, consistent, and highly performant.
 
-The overall aesthetic should be:
+## Purpose
+A platform focused on music analytics and visualizations can easily become visually cluttered if design constraints are not strictly enforced. The MusicSense Design System exists to:
+1. **Prevent Design Drift**: Ensure that newly developed components align with existing views without introducing custom styles or arbitrary colors.
+2. **Accelerate Frontend Velocity**: Provide a catalog of reusable components and tokens so engineers can focus on feature logic rather than ad-hoc CSS.
+3. **Establish Aesthetic Restraint**: Enforce a minimal, music-first aesthetic inspired by high-quality products like Spotify, Linear, and Notion, avoiding distracting decorations.
 
-- Minimal
-- Clean
-- Professional
-- Modern
-- Music-focused
+## Design Goals
+- **Clarity Over Decoration**: Interfaces must prioritize raw information density, content scannability, and visual comfort over animations and gradients.
+- **Strict Spacing Constraints**: Build all layouts using a base-8 spacing scale, removing arbitrary padding and margin values.
+- **Accessibility (A11y) Compliance**: Ensure all components meet WCAG 2.1 AA standards for color contrast, keyboard navigation, and semantic markers.
+- **Predictable Hierarchies**: Establish a typography and size scale where element weights decrease predictably as users navigate down page sections.
 
-Avoid making the application look futuristic or over-designed.
+## Current Status
+The design system foundations are implemented. Core parameters (emerald accents, slate/zinc neutrals, base font stacks) are configured inside the Tailwind config file. Core UI blocks (buttons, dialogs, inputs, forms) are integrated using shadcn/ui components.
 
----
+## Future Scope
+In future releases, we plan to implement:
+- **Dynamic DNA Theming**: A contextual styling module that extracts mood and color profiles from the current track's Music DNA and dynamically transitions layout gradients to match.
+- **Isolated Component Testing**: Setting up Storybook to catalog, document, and test React components in isolation.
 
-# Color Palette
-
-Primary Accent
-
-- Emerald / Green
-
-Neutral Colors
-
-- White
-- Black
-- Gray
-
-Use colors intentionally.
-
-Avoid rainbow gradients and excessive accent colors.
+## Possible Improvements
+- **Automated Token Linters**: Integrating Tailwind CSS linters that flag and block code containing arbitrary margin, padding, or color utility classes (e.g. `mt-[17px]` or `bg-[#fa3232]`).
 
 ---
 
-# Typography
+## Design Language Guidelines
 
-Hierarchy should remain consistent.
+### Color Palette
+- **Primary Accent**: Emerald / Green (reflecting energy, growth, and music vitality).
+- **Neutrals**: Dark slate and zinc grays.
+- **Application Rule**: Use accent colors sparingly (e.g., primary buttons, active playback indicators, DNA markers). Neutral backgrounds and borders should dominate the interface.
+- **Avoid**: Rainbow gradients, neon drop shadows, and multiple accent colors.
 
-Heading sizes should decrease predictably.
+### Typography
+- **Font Stack**: System-sans fallback (Inter, Outfit, or Roboto).
+- **Scale Rules**:
+  - Heading sizes must decrease predictably (e.g., h1: 2rem, h2: 1.5rem, h3: 1.25rem, body: 1rem).
+  - Use line-heights ($1.5\times$ to $1.6\times$ font size) to ensure readability.
+- **Avoid**: Extremely large hero text, tiny illegible body text, or mixing more than two distinct font families.
 
-Use generous line spacing for readability.
-
-Avoid:
-
-- Huge hero text
-- Tiny body text
-- Random font weights
-
----
-
-# Spacing System
-
-Use an 8px spacing scale.
-
-Preferred spacing values:
-
-- 4
-- 8
-- 12
-- 16
-- 24
-- 32
-- 48
-- 64
-- 96
-
-Never use arbitrary spacing unless necessary.
+### Spacing System
+All margins, padding, gaps, and sizes must comply with a base-8px grid:
+- **4px**: Micro adjustments.
+- **8px**: Inner element gaps.
+- **12px**: Small element padding.
+- **16px**: Standard gaps and padding.
+- **24px / 32px**: Section gaps.
+- **48px / 64px / 96px**: Large container padding and layout margins.
 
 ---
 
-# Layout
+## Component Rules
 
-Maximum content width:
+### 1. Cards
+- **Specifications**: Rounded corners (standard `rounded-lg` or `rounded-xl`), subtle borders (`border-border`), and solid backgrounds.
+- **Avoid**: Heavy drop shadows, glassmorphism, or glowing borders.
 
-1200px
+### 2. Buttons
+- **Primary**: Solid emerald accent with white/black text. Used for main call-to-actions.
+- **Secondary**: Outlined border with neutral text. Used for secondary actions.
+- **Danger**: Solid red background. Reserved strictly for destructive actions (e.g., delete library, delete account).
+- **Ghost**: Minimal padding, zero border. Used for minor controls (e.g., pagination, secondary navigation).
 
-Content should always be centered.
+### 3. Icons
+- **Standard Library**: Lucide React.
+- **Application Rule**: Icons must serve a clear functional purpose (e.g., chevron indicators, action triggers) rather than decorative filler. Keep sizes uniform (usually 16px or 20px).
 
-Use consistent horizontal padding.
-
-Desktop:
-
-Comfortable whitespace.
-
-Mobile:
-
-Readable without horizontal scrolling.
-
----
-
-# Components
-
-Prefer reusable components.
-
-Examples:
-
-Reusable
-
-- Button
-- Card
-- Navbar
-- Footer
-- Input
-- Modal
-- FeatureCard
-
-Page Specific
-
-- Hero Section
-- Landing CTA
-- Dashboard Charts
-
-Do not duplicate reusable UI.
+### 4. Images & Visuals
+- **Permitted**: High-resolution screenshots, crisp product mockups, and clean SVG shapes.
+- **Avoid**: Low-quality generic AI-generated artwork, stock photography, or cartoon clip art.
 
 ---
 
-# Cards
-
-Cards should have:
-
-- Rounded corners
-- Subtle border
-- Light shadow (only when appropriate)
-
-Avoid:
-
-- Heavy shadows
-- Glassmorphism
-- Neon effects
+## Layout Constraints
+- **Maximum Container Width**: Strictly capped at `1200px` for content areas to maintain text readability.
+- **Centering**: Main content containers must always be centered within the viewport.
+- **Mobile First**: All layouts must stack cleanly and remain readable on mobile screens without requiring horizontal scrolling.
 
 ---
 
-# Buttons
-
-Primary
-
-Filled accent color.
-
-Secondary
-
-Outline.
-
-Danger
-
-Red.
-
-Ghost
-
-Minimal.
-
-Button sizes should remain consistent throughout the application.
-
----
-
-# Icons
-
-Use Lucide React.
-
-Do not mix multiple icon libraries.
-
-Icons should communicate meaning rather than decoration.
-
----
-
-# Images
-
-Prefer:
-
-- Real screenshots
-- Product illustrations
-- Simple SVG graphics
-
-Avoid:
-
-- Generic AI-generated illustrations
-- Random stock photos
-- Cartoon graphics
-
----
-
-# Responsiveness
-
-Mobile-first.
-
-Support:
-
-- Mobile
-- Tablet
-- Laptop
-- Desktop
-
-Every page must work across all screen sizes.
-
----
-
-# Animations
-
-Animations should be subtle.
-
-Allowed:
-
-- Hover transitions
-- Fade in
-- Scale (small)
-
-Avoid:
-
-- Continuous animations
-- Floating elements
-- Large parallax effects
-- Overly animated landing pages
-
----
-
-# Accessibility
-
-Always include:
-
-- Semantic HTML
-- Keyboard navigation
-- Proper button elements
-- Form labels
-- Sufficient color contrast
-
-Never rely solely on color to convey meaning.
-
----
-
-# Component Rules
-
-Before creating a component, ask:
-
-1. Will this be reused?
-2. Can this become a generic UI component?
-3. Does shadcn/ui already provide this?
-
-If yes,
-
-Use or extend the existing component.
-
----
-
-# Development Rules
-
-Every UI implementation should follow this order:
-
-Structure
-
-↓
-
-Responsiveness
-
-↓
-
-Styling
-
-↓
-
-Accessibility
-
-↓
-
-Polish
-
-Do not optimize visuals before the layout is correct.
-
----
-
-# Things to Avoid
-
-- Over-designed landing pages
-- Excessive gradients
-- Glassmorphism everywhere
-- Random spacing
-- Inconsistent typography
-- Inconsistent border radius
-- Huge drop shadows
-- Decorative animations
-- Multiple primary colors
-- Copying designs from AI templates
-
----
-
-# Definition of Done
-
-A UI component is complete only if:
-
-✓ Responsive
-
-✓ Accessible
-
-✓ Reusable (when appropriate)
-
-✓ Uses project design tokens
-
-✓ Matches existing components
-
-✓ Looks consistent with the rest of the application
+## Development Sequence & Verification
+
+### UI Implementation Order
+When building new views, follow this sequence:
+1. **Structure**: Write clean HTML5 semantic elements (main, section, nav, article).
+2. **Responsiveness**: Configure flex and grid breakpoints for mobile and desktop viewports.
+3. **Styling**: Apply styling tokens via Tailwind classes and shadcn components.
+4. **Accessibility**: Add aria-labels, tab-indices, and keyboard trigger listeners.
+5. **Polish**: Integrate subtle hover states, focus outlines, and load transitions.
+
+### Definition of Done for UI Components
+A component is complete only if:
+- [x] Responsive: Verified across mobile, tablet, and widescreen layouts.
+- [x] Accessible: Navigable via keyboard with sufficient color contrast.
+- [x] Reusable: Stateless components are isolated in `components/` and accept props.
+- [x] Clean: Avoids inline styles and arbitrary Tailwind utilities.
+- [x] Cohesive: Matches the slate and emerald design system palette.

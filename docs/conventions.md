@@ -1,341 +1,146 @@
 # MusicSense Coding Conventions
 
-This document defines the coding standards for the MusicSense project.
-
-Every contribution should follow these conventions to keep the codebase clean, predictable, and maintainable.
+The engineering standards, naming patterns, file structures, and quality checklists for development in the MusicSense mono-repository: An AI-powered Music Intelligence Platform.
 
 ---
 
-# General Principles
+## Overview
+This document defines the software engineering standards and code quality rules for the MusicSense codebase. It covers file naming, directory structure, imports organization, TypeScript typing practices, API client patterns, error handling, and Git workflows. Compliance with these conventions is mandatory for all contributions.
 
-- Write code for humans first.
-- Prefer readability over cleverness.
-- Keep functions small and focused.
-- Avoid premature optimization.
-- Remove unused code instead of commenting it out.
+## Purpose
+A codebase spanning a React client, an Express API backend, and a Python ML service can quickly become disorganized without clear conventions. Standardizing development practices ensures:
+1. **Low Cognitive Load**: Developers can navigate and understand code in any module quickly.
+2. **Predictable Code Reviews**: Code reviews focus on logic, security, and performance rather than formatting arguments or naming style debates.
+3. **Fewer Integration Bugs**: Standardizing interfaces (e.g. unified API clients instead of direct Axios calls) reduces integration errors.
+
+## Design Goals
+- **Readability Over Cleverness**: Code must be written for other engineers first. Avoid overly abstract or compact patterns.
+- **Strict Separation of Concerns**: Keep UI layers, business orchestrators, database layers, and ML model runtimes completely separate.
+- **Defensive Error Management**: Never allow exceptions to fail silently. Always catch, log, and return clean messages.
+- **Git Traceability**: Maintain a clear git history using standardized commit tags.
+
+## Current Status
+Coding conventions are established for the React client and Express server. TypeScript configuration files (`tsconfig.json`) are in place and configured with strict typing rules.
+
+## Future Scope
+- **ML Coding Standards**: Enforcing PEP 8 conventions, typing annotations (via Type Hints), and documentation rules for the Python `ml-service`.
+- **Pre-commit Automation**: Integrating Husky and lint-staged to run auto-formatters (Prettier) and linters (ESLint, Flake8) before committing code.
+
+## Possible Improvements
+- **Automated Code Quality Metrics**: Configuring tools like SonarQube or CodeClimate in the CI/CD pipeline to track code duplication, complexity metrics, and test coverage automatically.
 
 ---
 
-# Project Structure
+## Repository Structure
 
-Frontend
-
+### Frontend Directory (`client/`)
+```
 client/
-├── components/
-├── pages/
-├── services/
-├── hooks/
-├── lib/
-├── types/
-├── assets/
-└── utils/
+├── components/   # Shared, stateless UI components (Buttons, Inputs, Modals)
+├── pages/        # Stateful page views (Dashboard, UploadPage, Landing)
+├── services/     # API integration service modules (authService, musicService)
+├── hooks/        # Reusable React hooks (useAuth, useUpload)
+├── lib/          # External library wrapper configurations (e.g., shadcn/ui utils)
+├── types/        # TypeScript interfaces and type definitions
+├── assets/       # Static local media, logos, and illustrations
+└── utils/        # Generic helper functions (date formatters, mathematical helpers)
+```
 
-Backend
-
+### Backend Directory (`server/`)
+```
 server/
-├── controllers/
-├── routes/
-├── services/
-├── middleware/
-├── models/
-├── utils/
-├── config/
-└── types/
-
----
-
-# Naming Conventions
-
-Components
-
-PascalCase
-
-Examples
-
-Navbar.tsx
-
-FeatureCard.tsx
-
-MusicUploader.tsx
-
-Hooks
-
-camelCase beginning with "use"
-
-Examples
-
-useAuth.ts
-
-useUpload.ts
-
-useMusicAnalysis.ts
-
-Utilities
-
-camelCase
-
-Examples
-
-formatDate.ts
-
-calculateSimilarity.ts
-
-API Services
-
-camelCase
-
-Examples
-
-authService.ts
-
-musicService.ts
-
-File Names
-
-Use descriptive names.
-
-Avoid:
-
-helper.ts
-
-utils.ts
-
-new.ts
-
-temp.ts
-
----
-
-# Component Rules
-
-Each component should have a single responsibility.
-
-Good
-
-Navbar
-
-FeatureCard
-
-UploadButton
-
-Bad
-
-MegaComponent
-
-EverythingComponent
-
-HomeEverything
-
----
-
-# Reusability
-
-Before creating a new component ask:
-
-Can another page use this?
-
-If yes
-
-Move it into
-
-components/
-
-Page-specific UI should stay inside the page folder.
-
----
-
-# Imports
-
-Import order:
-
-1. React
-2. Third-party libraries
-3. Internal aliases
-4. Relative imports
-5. Styles
-
-Keep imports grouped.
-
-Avoid scattered imports.
-
----
-
-# Functions
-
-Prefer:
-
-Small functions.
-
-Avoid:
-
-300-line functions.
-
-Each function should do one thing well.
-
----
-
-# State Management
-
-Prefer local state first.
-
-Use Context only when necessary.
-
-Do not introduce Redux, Zustand, or another global state library unless there is a clear need and team approval.
-
----
-
-# API Calls
-
-All API requests must go through
-
-services/api.ts
-
-Never call axios directly inside components.
-
-Business-specific requests should live in dedicated service files.
-
-Example
-
-services/authService.ts
-
-services/musicService.ts
-
----
-
-# Environment Variables
-
-Never hardcode:
-
-URLs
-
-API keys
-
-Secrets
-
-Ports
-
-Always use environment variables.
-
----
-
-# Styling
-
-Use:
-
-Tailwind CSS
-
-shadcn/ui
-
-Avoid inline styles unless absolutely necessary.
-
-Keep utility classes readable.
-
----
-
-# Comments
-
-Explain WHY.
-
-Do not explain WHAT.
-
-Bad
-
-// Increment i
-i++;
-
-Good
-
-// Retry once because the API occasionally returns a transient timeout.
+├── controllers/  # Route controller implementations (business logic)
+├── routes/       # Express route definitions and parameter mappings
+├── services/     # Core services (Database operations, pipeline management)
+├── middleware/   # Express middleware (auth check, file filters, error handlers)
+├── models/       # Database models and type schemas
+├── utils/        # Internal server helpers (UUID generators, fs cleanups)
+├── config/       # Environment variable configurations
+└── types/        # Internal backend TypeScript types
 ```
 
 ---
 
-# Error Handling
+## Naming Conventions
 
-Never silently ignore errors.
+### 1. Components & Views
+- **Pattern**: PascalCase.
+- **Examples**: `Navbar.tsx`, `FeatureCard.tsx`, `MusicUploader.tsx`.
 
-Always:
+### 2. Custom Hooks
+- **Pattern**: camelCase prefixed with `use`.
+- **Examples**: `useAuth.ts`, `useUpload.ts`, `useMusicAnalysis.ts`.
 
-Handle
+### 3. Utility Modules & Helper Functions
+- **Pattern**: camelCase.
+- **Examples**: `formatDate.ts`, `calculateSimilarity.ts`.
 
-Log
+### 4. API Service Integrations
+- **Pattern**: camelCase suffixed with `Service`.
+- **Examples**: `authService.ts`, `musicService.ts`.
 
-Return meaningful messages
-
----
-
-# TypeScript
-
-Avoid using:
-
-any
-
-Prefer explicit interfaces and types.
-
-Type safety is mandatory.
+### 5. Filenames
+- **Rule**: Filenames must be descriptive.
+- **Avoid**: Generic names like `helper.ts`, `utils.ts`, `new.ts`, `temp.ts`.
 
 ---
 
-# Git
+## Engineering Rules
 
-Commit only complete milestones.
+### Single Responsibility Components
+Each React component must handle one concern. Stateful operations and business logic should be extracted into custom hooks or services, leaving the UI components clean and presentable.
+- **Good**: A `MusicUploader` component handling the file drag-and-drop state, delegating the network upload logic to a `useUpload` hook.
+- **Bad**: A single component that manages upload states, validates files, executes raw Axios calls, hashes user sessions, and draws charts.
 
-Avoid commits like:
+### Reusability
+Before building a new component, check if it can be reused across pages.
+- Reusable UI elements must be located in `client/components/`.
+- Page-specific UI elements should remain inside their respective page folder.
 
-fix
+### Import Organization
+Keep imports grouped and organized:
+1. React core libraries.
+2. Third-party packages.
+3. Internal aliases (e.g., `@/components/`, `@/services/`).
+4. Relative imports (`../components/`).
+5. Style sheets.
 
-changes
+### State Management
+- Default to local React state (`useState`, `useReducer`) first.
+- Move to Context APIs only when state must be accessed by multiple nested tree children.
+- Do not introduce global state managers (Redux, Zustand) without team review.
 
-update
+### API Integrations
+All API requests must go through `client/services/api.ts` which configures baseUrl and interceptors.
+- Never write raw Axios calls directly inside components.
+- Group related APIs inside service files (e.g., `services/authService.ts`).
 
-test
+### Strict Type Safety
+- **Rule**: Never use the `any` type in TypeScript.
+- Write explicit interfaces and type guards. Use Prisma-generated models directly for database schema structures.
 
-Preferred:
-
-feat: implement landing page
-
-feat: add authentication API
-
-fix: resolve upload validation
-
-refactor: extract reusable feature card
-
----
-
-# Code Review Checklist
-
-Before considering work complete:
-
-✓ Builds successfully
-
-✓ No TypeScript errors
-
-✓ Responsive
-
-✓ Accessible
-
-✓ No duplicated code
-
-✓ Reusable where appropriate
-
-✓ Follows design system
-
-✓ Uses existing project architecture
-
-✓ No unused imports
-
-✓ No console.log statements left behind
+### Defensive Error Handling
+Never ignore exceptions or write empty `catch` blocks.
+- **Required**: Log errors with context, clean up resources (e.g., deleting temporary files on disk when a DB transaction fails), and return human-readable messages to the user.
 
 ---
 
-# AI Development Guidelines
+## Git Workflow & Commit Rules
+We use a structured commit naming system to generate clean, legible history:
+- `feat: <description>`: Introduction of new features.
+- `fix: <description>`: Bug fixes.
+- `refactor: <description>`: Code changes that do not modify behavior or fix bugs.
+- `docs: <description>`: Documentation changes.
+- `chore: <description>`: Build script, workspace configurations, or dependency updates.
 
-When generating code:
+*Avoid vague commits like "fix", "changes", "wip", or "test".*
 
-- Reuse existing components before creating new ones.
-- Keep files modular.
-- Avoid unnecessary dependencies.
-- Follow the project architecture.
-- Follow the design system.
-- Prefer composition over duplication.
-- Ask for clarification instead of making assumptions about business logic.
+---
+
+## Code Review Checklist
+Before marking a task as complete and opening a merge request, verify:
+- [x] Compilation: The codebase compiles without errors.
+- [x] TypeScript: Zero TypeScript warnings or `any` references remain.
+- [x] Responsive: Views adapt to mobile and desktop screens.
+- [x] Performance: No redundant components are rerendered, and physical file paths are securely hidden.
+- [x] Cleanliness: Dead code, unused imports, and debug console logs are removed.

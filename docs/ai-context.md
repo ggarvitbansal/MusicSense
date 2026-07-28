@@ -1,354 +1,102 @@
 # MusicSense AI Context
 
-This document provides persistent context for AI coding assistants contributing to MusicSense.
-
-Read this file before implementing any feature.
+Persistent development context, engineering guardrails, stack patterns, and code generation rules for AI assistants and developers contributing to MusicSense: An AI-powered Music Intelligence Platform.
 
 ---
 
-# Project Overview
+## Overview
+This document provides coding constraints and architectural boundaries for the MusicSense project. It is designed to be read by AI coding agents and engineers before any modification or extension of the codebase. By clarifying style preferences, code reusability rules, state management guidelines, and API clients, this document ensures the codebase remains maintainable, scalable, and safe.
 
-MusicSense is a production-quality AI-powered music intelligence platform.
+## Purpose
+AI assistants generate code quickly but can sometimes introduce architectural drift, redundant utilities, unapproved dependencies, or security issues if not guided by project-specific context. This document acts as a persistent guardrail to:
+1. **Enforce Architectural Consistency**: Keep code aligned with the modular 3-tier structure (React, Express, Python ML).
+2. **Prevent Code Bloat**: Guide developers to reuse existing libraries (Tailwind CSS, shadcn/ui) and components instead of creating duplicates.
+3. **Streamline Integrations**: Enforce type safety standards and API integration conventions to prevent runtime regressions.
 
-The application analyzes a user's local music collection using machine learning and audio signal processing to generate meaningful insights, predictions, and visualizations.
+## Design Goals
+- **Coherence**: Ensure all generated code matches the established structural patterns of the mono-repository.
+- **Simplicity**: Favor clean, readable code over complex, highly abstract structures.
+- **System Safety**: Protect the upload pipeline and local filesystems by enforcing security rules.
 
-This project is intended to showcase strong software engineering practices, clean architecture, and modern full-stack development.
+## Current Status
+The foundation blocks, database migrations, auth middleware, and upload pipeline are operational. Developers and AI assistants must coordinate feature additions according to this roadmap.
 
-Code quality is more important than implementation speed.
+## Future Scope
+This document will be updated to include constraints for the Python `ml-service` module (including Pandas, TensorFlow, and Librosa coding guidelines) and guidelines for writing unit and integration tests.
 
----
-
-# Primary Goals
-
-Always optimize for:
-
-1. Maintainability
-2. Scalability
-3. Readability
-4. Reusability
-5. Type Safety
-6. User Experience
-
-Never sacrifice architecture for short-term convenience.
+## Possible Improvements
+- **Auto-Linter Integrations**: Setting up custom ESLint rules matching these AI context patterns to automate syntax checking.
 
 ---
 
-# Technology Stack
+## Technical Specifications & Decisions
 
-Frontend
+### 1. Technology Stack
+- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router, Axios.
+- **Backend**: Node.js, Express, TypeScript, Prisma ORM, PostgreSQL.
+- **ML Service**: Python 3.10, TensorFlow, Librosa.
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- shadcn/ui
-- React Router
-- Axios
+### 2. Design Philosophy
+- **Aesthetic Inspiration**: Minimalist, high-density, professional SaaS layouts (Spotify, Linear, Notion).
+- **Avoid**: Flashing animations, neon glow boundaries, excessive gradients, and unstructured typography.
+- **Rules File**: Refer to [design-system.md](file:///c:/Users/GARVIT_BANSAL/Projects/MusicSense/docs/design-system.md).
 
-Backend
-
-- Node.js
-- Express
-- TypeScript
-
-Database (planned)
-
-- PostgreSQL
-- Prisma ORM
-
-Machine Learning (planned)
-
-- Python
-- TensorFlow
-- Librosa
+### 3. Coding Philosophy
+- **Prefer**: Modular architectures, single-responsibility modules, explicit interfaces, and clear naming.
+- **Avoid**: Multi-hundred-line components, duplicate utility modules, and premature optimization.
 
 ---
 
-# Architecture
+## Developer Guardrails & Rules
 
-The project follows a modular architecture.
+### Component Rules
+- Reusable UI elements must reside in `client/src/components/`.
+- Page-specific sub-components should remain with their respective page views in `client/src/pages/`.
+- Verify if a component exists in the local workspace or in the shadcn/ui library before writing new elements.
 
-Frontend
+### API Integration Rules
+- Never hardcode API paths or base URLs inside page components.
+- All requests must go through `client/src/services/api.ts`.
+- Group API endpoints inside service files (e.g. `authService.ts`, `musicService.ts`).
 
-Pages
+### TypeScript Standards
+- Avoid using the `any` keyword.
+- Define interfaces and types explicitly. Utilize compiler configurations to enforce strict type checking.
 
-↓
+### State Management
+- Utilize local component state (`useState`, `useReducer`) by default.
+- Move to Context APIs only when state must be shared across deeply nested components.
+- Do not install global state management libraries (Redux, Zustand) without team consensus.
 
-Reusable Components
+### Dependency Management
+- Do not install packages automatically.
+- Before proposing a new dependency, verify if the feature can be implemented using standard Web APIs or existing libraries.
 
-↓
+### UI Development Sequence
+Implement features strictly in this order:
+1. **Structure**: Write clean, semantic HTML5 elements.
+2. **Responsiveness**: Verify breakpoint formatting for mobile and desktop screens.
+3. **Accessibility**: Set focus states, aria-labels, and keyboard event handlers.
+4. **Styling**: Apply styling tokens via Tailwind CSS.
+5. **Polish**: Add hover effects and load transitions.
 
-Services
+### Error Handling
+- Never write empty catch blocks or ignore exceptions.
+- Ensure backend errors are logged, database transactions are rolled back where appropriate, and clean error messages are returned to the client.
 
-↓
-
-REST API
-
-↓
-
-Backend
-
-↓
-
-Database / ML Service
-
-Keep responsibilities separated.
-
-Never mix business logic into UI components.
-
----
-
-# Existing Decisions
-
-These decisions have already been made.
-
-Do not replace them unless explicitly instructed.
-
-UI Library
-
-✓ shadcn/ui
-
-Styling
-
-✓ Tailwind CSS
-
-HTTP Client
-
-✓ Axios
-
-Routing
-
-✓ React Router
-
-Language
-
-✓ TypeScript
-
-Backend
-
-✓ Express
+### Git & Commit Workflow
+Commit changes in complete logical milestones. Use structured prefixes:
+- `feat:` for new capabilities.
+- `fix:` for bug resolutions.
+- `refactor:` for code restructuring.
+- `docs:` for documentation updates.
+- `chore:` for workspace adjustments.
 
 ---
 
-# Design Philosophy
-
-The UI should resemble a modern SaaS product.
-
-Inspired by:
-
-- Spotify
-- Vercel
-- Linear
-- GitHub
-- Notion
-
-Avoid:
-
-- Generic AI-generated landing pages
-- Excessive gradients
-- Glassmorphism
-- Decorative animations
-- Inconsistent spacing
-- Random typography
-
-Follow docs/design-system.md.
-
----
-
-# Coding Philosophy
-
-Prefer:
-
-Small modules.
-
-Reusable components.
-
-Clear names.
-
-Single responsibility.
-
-Avoid:
-
-Large components.
-
-Code duplication.
-
-Unnecessary abstraction.
-
-Premature optimization.
-
----
-
-# Before Writing Code
-
-Always ask:
-
-Can this reuse an existing component?
-
-Can this become a reusable component?
-
-Does this already exist in shadcn/ui?
-
-Can this be simplified?
-
----
-
-# Component Rules
-
-Reusable components belong in
-
-components/
-
-Page-specific components remain with their page.
-
-Do not duplicate UI.
-
----
-
-# API Rules
-
-Never hardcode URLs.
-
-Always use
-
-services/api.ts
-
-Business-specific API calls belong inside dedicated service files.
-
-Example
-
-authService.ts
-
-musicService.ts
-
----
-
-# TypeScript
-
-Avoid
-
-any
-
-Prefer explicit interfaces.
-
-Prefer type safety over convenience.
-
----
-
-# State Management
-
-Use local state by default.
-
-Use Context only when justified.
-
-Do not introduce Redux, Zustand, MobX, or other state management libraries without approval.
-
----
-
-# Dependencies
-
-Do not install packages automatically.
-
-Before adding a dependency ask:
-
-Is there already a built-in solution?
-
-Can this be implemented with existing libraries?
-
-Will this dependency increase maintenance cost?
-
-If uncertain,
-
-ask first.
-
----
-
-# File Creation
-
-Prefer extending existing modules.
-
-Do not generate unnecessary files.
-
-Keep folders organized.
-
----
-
-# UI Development Order
-
-1. Structure
-2. Responsiveness
-3. Accessibility
-4. Styling
-5. Polish
-
-Do not reverse this order.
-
----
-
-# Error Handling
-
-Never silently ignore errors.
-
-Always provide meaningful error messages.
-
-Backend responses should be predictable.
-
----
-
-# Git Workflow
-
-Never commit partial features.
-
-Every commit should represent a complete milestone.
-
-Commit message format
-
-feat:
-
-fix:
-
-refactor:
-
-docs:
-
-chore:
-
-Avoid vague commit messages.
-
----
-
-# Documentation
-
-Whenever introducing a significant architectural decision,
-
-update the appropriate file in
-
-docs/
-
-Do not allow documentation to become outdated.
-
----
-
-# AI Behaviour
-
-If requirements are unclear,
-
-ask for clarification instead of making assumptions.
-
-If multiple implementation approaches exist,
-
-choose the simplest maintainable solution.
-
-Prioritize long-term maintainability over writing the fewest lines of code.
-
-Follow:
-
-docs/architecture.md
-
-docs/design-system.md
-
-docs/conventions.md
-
-docs/roadmap.md
-
-before generating code.
+## AI Assistant Operational Guidelines
+When writing code for MusicSense:
+1. **Verify Context**: Review [architecture.md](file:///c:/Users/GARVIT_BANSAL/Projects/MusicSense/docs/architecture.md) and [conventions.md](file:///c:/Users/GARVIT_BANSAL/Projects/MusicSense/docs/conventions.md) before writing any code.
+2. **Clarify Intent**: If user requirements or business rules are ambiguous, ask clarifying questions instead of making assumptions.
+3. **Minimize Churn**: Keep code changes compact and targeted. Reuse existing assets and logic.
+4. **Type Enforce**: Write typed contracts for all API payloads and internal modules.
