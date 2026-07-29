@@ -1,9 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { generateUniqueFilename } from "../utils/file.utils.js";
 
 const uploadDirectory = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDirectory)) {
+  fs.mkdirSync(uploadDirectory, { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {

@@ -18,10 +18,7 @@ def log_memory(step_name: str):
     except Exception as e:
         print(f"[MEMORY PROFILE] Failed to log memory at {step_name}: {str(e)}", flush=True)
 
-class AnalysisRequest(BaseModel):
-    """Input payload model for audio analysis request."""
-    uploadId: str = Field(..., description="Unique identifier for the file upload")
-    filePath: str = Field(..., description="Absolute physical path to the audio file on disk")
+# Feature response models
 
 class AudioMetadata(BaseModel):
     """Model holding metadata and extracted audio features, designed for future extensibility."""

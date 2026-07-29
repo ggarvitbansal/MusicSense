@@ -19,9 +19,19 @@ export class UploadController {
 
       const upload = await uploadService.handleUpload(userId, req.file);
       
+      // Auto-trigger analysis immediately while the file is guaranteed to be on disk in this container session
+      try {
+        await uploadService.analyzeUpload(upload.id, userId);
+      } catch (err) {
+        console.error("Auto-analysis failed during upload:", err);
+      }
+
+      // Retrieve the updated upload record (which now has COMPLETED or FAILED status)
+      const updatedUpload = await uploadService.getUploadById(upload.id, userId);
+      
       res.status(201).json({
         success: true,
-        data: upload,
+        data: updatedUpload,
       });
     } catch (error) {
       next(error);
