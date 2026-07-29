@@ -2,6 +2,7 @@ import { uploadRepository } from "../repositories/upload.repository.js";
 import { getFileExtension, deletePhysicalFile } from "../utils/file.utils.js";
 import { UploadStatus } from "@prisma/client";
 import path from "path";
+import fs from "fs";
 import { analysisRepository } from "../repositories/analysis.repository.js";
 
 export class UploadService {
@@ -84,20 +85,18 @@ export class UploadService {
     await uploadRepository.updateStatus(id, UploadStatus.PROCESSING);
 
     try {
-      // 3. Resolve absolute file path so the ML Service can locate the file
-      const absolutePath = path.resolve(upload.path);
+      // 3. Read physical file into buffer and package into FormData
+      const fileBuffer = await fs.promises.readFile(upload.path);
+      const blob = new Blob([fileBuffer], { type: upload.mimeType });
+      const formData = new FormData();
+      formData.append("uploadId", id);
+      formData.append("file", blob, upload.originalName);
 
-      // 4. Request analysis from FastAPI ML Service
+      // 4. Request analysis from FastAPI ML Service via multipart POST
       const mlServiceUrl = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
       const response = await fetch(`${mlServiceUrl}/analyze`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          uploadId: id,
-          filePath: absolutePath,
-        }),
+        body: formData,
       });
 
       if (!response.ok) {

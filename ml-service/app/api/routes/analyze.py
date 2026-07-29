@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+import os
+import shutil
+import tempfile
+from fastapi import APIRouter, HTTPException, status, File, Form, UploadFile
 from pydantic import BaseModel, Field
 from typing import Optional
 from app.services.feature_extractor import FeatureExtractor
@@ -52,7 +55,10 @@ class AnalysisResponse(BaseModel):
     musicDNA: MusicDNA = Field(..., description="Semantic interpreted Music DNA features")
 
 @router.post("/analyze", response_model=AnalysisResponse, status_code=status.HTTP_200_OK, tags=["analysis"])
-def analyze_audio(request: AnalysisRequest) -> AnalysisResponse:
+def analyze_audio(
+    uploadId: str = Form(..., description="Unique identifier for the file upload"),
+    file: UploadFile = File(..., description="Audio file to analyze")
+) -> AnalysisResponse:
     """
     Validates request body, runs digital signal processing (DSP) features extraction,
     and compiles the deterministic Music DNA semantic metrics.
@@ -64,8 +70,23 @@ def analyze_audio(request: AnalysisRequest) -> AnalysisResponse:
     """
     extractor = FeatureExtractor()
     dna_service = MusicDNAService()
+
+    # 1. Create a secure temporary file to write uploaded bytes
+    suffix = "." + file.filename.split(".")[-1] if file.filename and "." in file.filename else ".mp3"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+        temp_path = temp_file.name
+        try:
+            shutil.copyfileobj(file.file, temp_file)
+        except Exception as e:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to read upload file stream: {str(e)}"
+            )
+
     try:
-        raw_metadata = extractor.extract_features(request.filePath)
+        raw_metadata = extractor.extract_features(temp_path)
         
         # Populate AudioMetadata and map computed properties
         metadata = AudioMetadata(
@@ -121,3 +142,7 @@ def analyze_audio(request: AnalysisRequest) -> AnalysisResponse:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal analysis failure: {str(e)}"
         )
+    finally:
+        # Clean up temporary file
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)

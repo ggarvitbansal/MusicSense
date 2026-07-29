@@ -4,5 +4,4 @@ python-dotenv
 numpy
 librosa
 soundfile
-tensorflow
-scikit-learn
+python-multipart
