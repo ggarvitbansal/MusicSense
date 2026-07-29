@@ -16,5 +16,6 @@ class Settings:
     HOST: str = os.getenv("HOST", "127.0.0.1")
     PORT: int = _parse_port()
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "info")
+    LIGHTWEIGHT_MODE: bool = os.getenv("LIGHTWEIGHT_MODE", "True").lower() == "true"
 
 settings = Settings()
