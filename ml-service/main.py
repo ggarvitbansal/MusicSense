@@ -1,3 +1,14 @@
+import os
+# Configure system environment variables to limit native OpenBLAS / MKL / OMP thread pools.
+# On multi-core cloud host processors (like Render's cluster), numpy/scipy's BLAS backends default
+# to spawning one thread per CPU core (e.g. 32-64 threads on the host), consuming over 250MB of stack
+# memory alone. Limiting to 1 thread completely prevents this overhead and ensures the process stays below 512MB.
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 from fastapi import FastAPI
 from app.api.routes.health import router as health_router
 from app.api.routes.analyze import router as analyze_router
