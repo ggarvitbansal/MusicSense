@@ -22,42 +22,42 @@ def extract_zcr(y: np.ndarray) -> Optional[list[float]]:
     except Exception:
         return None
 
-def extract_spectral_centroid(y: np.ndarray, sr: int) -> Optional[list[float]]:
+def extract_spectral_centroid(y: np.ndarray, sr: int, S: Optional[np.ndarray] = None) -> Optional[list[float]]:
     """
     Extract Spectral Centroid list.
     """
     try:
-        centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
+        centroid = librosa.feature.spectral_centroid(y=y, sr=sr, S=S)
         return centroid[0].tolist()
     except Exception:
         return None
 
-def extract_spectral_bandwidth(y: np.ndarray, sr: int) -> Optional[list[float]]:
+def extract_spectral_bandwidth(y: np.ndarray, sr: int, S: Optional[np.ndarray] = None) -> Optional[list[float]]:
     """
     Extract Spectral Bandwidth list.
     """
     try:
-        bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+        bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr, S=S)
         return bandwidth[0].tolist()
     except Exception:
         return None
 
-def extract_spectral_rolloff(y: np.ndarray, sr: int) -> Optional[list[float]]:
+def extract_spectral_rolloff(y: np.ndarray, sr: int, S: Optional[np.ndarray] = None) -> Optional[list[float]]:
     """
     Extract Spectral Roll-off frequencies list.
     """
     try:
-        rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
+        rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr, S=S)
         return rolloff[0].tolist()
     except Exception:
         return None
 
-def extract_spectral_contrast(y: np.ndarray, sr: int) -> Optional[list[float]]:
+def extract_spectral_contrast(y: np.ndarray, sr: int, S: Optional[np.ndarray] = None) -> Optional[list[float]]:
     """
     Compute spectral contrast and return the mean spectral contrast vector.
     """
     try:
-        contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
+        contrast = librosa.feature.spectral_contrast(y=y, sr=sr, S=S)
         # Average each subband over the frames (axis 1)
         mean_contrast = np.mean(contrast, axis=1)
         return mean_contrast.tolist()

@@ -2,12 +2,12 @@ import numpy as np
 import librosa
 from typing import Optional
 
-def extract_chroma(y: np.ndarray, sr: int) -> Optional[list[float]]:
+def extract_chroma(y: np.ndarray, sr: int, S: Optional[np.ndarray] = None) -> Optional[list[float]]:
     """
     Compute chroma_stft and return the mean values for each of the 12 chroma bins.
     """
     try:
-        chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+        chroma = librosa.feature.chroma_stft(y=y, sr=sr, S=S)
         # Average each chroma bin over the frames (axis 1)
         mean_chroma = np.mean(chroma, axis=1)
         return mean_chroma.tolist()

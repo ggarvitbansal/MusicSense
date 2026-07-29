@@ -2,11 +2,11 @@ import numpy as np
 import librosa
 from typing import Optional
 
-def extract_core_properties(y: np.ndarray, sr: float) -> dict:
+def extract_core_properties(y: np.ndarray, sr: float, real_duration: Optional[float] = None) -> dict:
     """
     Extract duration, sample rate, and number of channels from loaded audio data.
     """
-    duration = float(librosa.get_duration(y=y, sr=sr))
+    duration = real_duration if real_duration is not None else float(librosa.get_duration(y=y, sr=sr))
     sample_rate = int(sr)
     channels = 1 if y.ndim == 1 else int(y.shape[0])
     return {
