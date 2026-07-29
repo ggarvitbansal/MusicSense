@@ -95,40 +95,60 @@ class FeatureExtractor:
         # 5. Prepare mono downmix for feature extraction
         if y.ndim > 1:
             log_memory("Downmixing stereo to mono")
-            y_mono = librosa.to_mono(y)
+            y_mono = np.mean(y, axis=0, dtype=np.float32)
             log_memory("Downmix complete")
+            # Delete original stereo buffer immediately to save RAM before STFT
+            del y
+            gc.collect()
         else:
             y_mono = y
+
+        # Define STFT window size and hop length to reduce spectrogram memory footprint
+        n_fft = 1024 if settings.LIGHTWEIGHT_MODE else 2048
+        hop_length = 1024 if settings.LIGHTWEIGHT_MODE else 512
 
         # 6. Check for Lightweight Mode to conserve memory and bypass expensive algorithms
         if settings.LIGHTWEIGHT_MODE:
             log_memory("[LIGHTWEIGHT MODE] Computing STFT magnitude spectrogram once")
             try:
-                stft_complex = librosa.stft(y_mono)
+                stft_complex = librosa.stft(y_mono, n_fft=n_fft, hop_length=hop_length)
+                log_memory(f"[LIGHTWEIGHT MODE] STFT complex shape: {stft_complex.shape}")
                 S_magnitude = np.abs(stft_complex)
                 del stft_complex
+                gc.collect()
             except Exception as e:
                 log_memory(f"[LIGHTWEIGHT MODE] STFT failed: {str(e)}")
                 S_magnitude = None
 
             # Extract cheap features
-            log_memory("[LIGHTWEIGHT MODE] Extracting tempo")
-            tempo_val = extract_tempo(y_mono, core_props["sampleRate"])
-            log_memory("[LIGHTWEIGHT MODE] Extracting RMS")
-            rms_list = extract_rms(y_mono)
+            log_memory("[LIGHTWEIGHT MODE] Computing onset envelope")
+            try:
+                # Compute onset envelope using S_magnitude to bypass redundant STFT calculations
+                onset_env = librosa.onset.onset_strength(y=y_mono, sr=core_props["sampleRate"], S=S_magnitude, hop_length=hop_length)
+                tempo_val = extract_tempo(y_mono, core_props["sampleRate"], onset_envelope=onset_env)
+                del onset_env
+                gc.collect()
+            except Exception as e:
+                log_memory(f"[LIGHTWEIGHT MODE] Onset envelope failed: {str(e)}")
+                tempo_val = extract_tempo(y_mono, core_props["sampleRate"])
+
+            log_memory("[LIGHTWEIGHT MODE] Extracting RMS (using magnitude)")
+            rms_list = extract_rms(y_mono, S=S_magnitude)
             log_memory("[LIGHTWEIGHT MODE] Extracting ZCR")
             zcr_list = extract_zcr(y_mono)
-            log_memory("[LIGHTWEIGHT MODE] Extracting Spectral Centroid")
+            log_memory("[LIGHTWEIGHT MODE] Extracting Spectral Centroid (using magnitude)")
             centroid_list = extract_spectral_centroid(y_mono, core_props["sampleRate"], S=S_magnitude)
-            log_memory("[LIGHTWEIGHT MODE] Extracting Spectral Bandwidth")
+            log_memory("[LIGHTWEIGHT MODE] Extracting Spectral Bandwidth (using magnitude)")
             bandwidth_list = extract_spectral_bandwidth(y_mono, core_props["sampleRate"], S=S_magnitude)
-            log_memory("[LIGHTWEIGHT MODE] Extracting Spectral Rolloff")
+            log_memory("[LIGHTWEIGHT MODE] Extracting Spectral Rolloff (using magnitude)")
             rolloff_list = extract_spectral_rolloff(y_mono, core_props["sampleRate"], S=S_magnitude)
             log_memory("[LIGHTWEIGHT MODE] Extracting silence ratio")
             silence_val = extract_silence_ratio(rms_list)
 
+            # Reclaim magnitude spectrogram memory immediately
             if S_magnitude is not None:
                 del S_magnitude
+                gc.collect()
 
             # Heuristically derive expensive features to maintain the exact same response schema
             log_memory("[LIGHTWEIGHT MODE] Mapping heuristics for expensive properties")
@@ -139,7 +159,6 @@ class FeatureExtractor:
             zcr_norm = min(1.0, avg_zcr / 0.15)
             centroid_norm = min(1.0, avg_centroid / 4000.0)
             
-            # Tracks with high ZCR and high Centroid are estimated as percussive (drums/transients)
             est_percussive = 0.2 + 0.6 * (0.6 * zcr_norm + 0.4 * centroid_norm)
             est_percussive = max(0.1, min(0.9, est_percussive))
             est_harmonic = 1.0 - est_percussive
@@ -154,7 +173,6 @@ class FeatureExtractor:
             contrast_means = [base_contrast + float(np.sin(i) * 1.5) for i in range(7)]
 
             # 3. MFCC: Create 13 coefficient mocks. mfcc[1] represents timbral slope for Acousticness.
-            # Acoustic tracks have lower centroids. Bright/electric/noisy tracks have high centroids.
             mfcc_1 = 150.0 - (110.0 * centroid_norm)
             mfcc_means = [0.0] * 13
             mfcc_means[1] = mfcc_1
@@ -189,7 +207,7 @@ class FeatureExtractor:
         # 6. [FULL MODE] Pre-compute STFT magnitude and power spectrograms once to reuse across extractors
         try:
             log_memory("Computing STFT complex array")
-            stft_complex = librosa.stft(y_mono)
+            stft_complex = librosa.stft(y_mono, n_fft=n_fft, hop_length=hop_length)
             log_memory(f"STFT complex shape: {stft_complex.shape}")
             
             log_memory("Computing magnitude spectrogram")
@@ -199,6 +217,7 @@ class FeatureExtractor:
             
             # Explicitly delete the complex array to release memory
             del stft_complex
+            gc.collect()
             log_memory("Deleted stft_complex array reference")
         except Exception as e:
             log_memory(f"Failed to compute STFT/spectrograms: {str(e)}")
@@ -206,10 +225,17 @@ class FeatureExtractor:
             S_power = None
 
         # 7. [FULL MODE] Delegate feature extraction to specialized modules
-        log_memory("Extracting tempo")
-        tempo_val = extract_tempo(y_mono, core_props["sampleRate"])
-        log_memory("Extracting RMS")
-        rms_list = extract_rms(y_mono)
+        log_memory("Computing onset envelope")
+        try:
+            onset_env = librosa.onset.onset_strength(y=y_mono, sr=core_props["sampleRate"], S=S_magnitude, hop_length=hop_length)
+            tempo_val = extract_tempo(y_mono, core_props["sampleRate"], onset_envelope=onset_env)
+            del onset_env
+            gc.collect()
+        except Exception:
+            tempo_val = extract_tempo(y_mono, core_props["sampleRate"])
+
+        log_memory("Extracting RMS (using magnitude)")
+        rms_list = extract_rms(y_mono, S=S_magnitude)
         log_memory("Extracting ZCR")
         zcr_list = extract_zcr(y_mono)
         
@@ -230,6 +256,7 @@ class FeatureExtractor:
             del S_magnitude
         if S_power is not None:
             del S_power
+        gc.collect()
         log_memory("Deleted pre-computed spectrograms references")
         
         log_memory("Extracting MFCC")

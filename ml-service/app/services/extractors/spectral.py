@@ -2,12 +2,12 @@ import numpy as np
 import librosa
 from typing import Optional
 
-def extract_rms(y: np.ndarray) -> Optional[list[float]]:
+def extract_rms(y: np.ndarray, S: Optional[np.ndarray] = None) -> Optional[list[float]]:
     """
     Extract Root-Mean-Square energy envelope list.
     """
     try:
-        rms = librosa.feature.rms(y=y)
+        rms = librosa.feature.rms(y=y, S=S)
         return rms[0].tolist()
     except Exception:
         return None
