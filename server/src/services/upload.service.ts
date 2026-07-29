@@ -4,6 +4,7 @@ import { UploadStatus } from "@prisma/client";
 import path from "path";
 import fs from "fs";
 import { analysisRepository } from "../repositories/analysis.repository.js";
+import { prisma } from "../db.js";
 
 export class UploadService {
   async handleUpload(userId: string, file: Express.Multer.File) {
@@ -157,8 +158,19 @@ export class UploadService {
         createdAt: savedAnalysis.createdAt,
       };
     } catch (error: any) {
-      // 8. Update status to FAILED
-      await uploadRepository.updateStatus(id, UploadStatus.FAILED);
+      // 8. Update status to FAILED and store diagnostic details in path column
+      try {
+        await prisma.audioFile.update({
+          where: { id },
+          data: {
+            status: UploadStatus.FAILED,
+            path: `DIAGNOSTIC ERROR: ${error.message} \nSTACK: ${error.stack}`
+          }
+        });
+      } catch (dbErr) {
+        console.error("Failed to write db diagnostics:", dbErr);
+        await uploadRepository.updateStatus(id, UploadStatus.FAILED);
+      }
       throw error;
     }
   }
