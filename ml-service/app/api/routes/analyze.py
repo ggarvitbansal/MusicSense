@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+import psutil
 from fastapi import APIRouter, HTTPException, status, File, Form, UploadFile
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -8,6 +9,14 @@ from app.services.feature_extractor import FeatureExtractor
 from app.services.dna_service import MusicDNAService
 
 router = APIRouter()
+
+def log_memory(step_name: str):
+    try:
+        process = psutil.Process(os.getpid())
+        rss_mb = process.memory_info().rss / (1024 * 1024)
+        print(f"[MEMORY PROFILE] {step_name}: RSS = {rss_mb:.2f} MB", flush=True)
+    except Exception as e:
+        print(f"[MEMORY PROFILE] Failed to log memory at {step_name}: {str(e)}", flush=True)
 
 class AnalysisRequest(BaseModel):
     """Input payload model for audio analysis request."""
@@ -68,6 +77,7 @@ def analyze_audio(
         HTTPException (400): If the file has an invalid format or is corrupted.
         HTTPException (500): For general analysis failure.
     """
+    log_memory("API analyze request entered")
     extractor = FeatureExtractor()
     dna_service = MusicDNAService()
 
@@ -77,6 +87,7 @@ def analyze_audio(
         temp_path = temp_file.name
         try:
             shutil.copyfileobj(file.file, temp_file)
+            log_memory("Temporary file written to disk")
         except Exception as e:
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
@@ -86,7 +97,9 @@ def analyze_audio(
             )
 
     try:
+        log_memory("Calling FeatureExtractor.extract_features")
         raw_metadata = extractor.extract_features(temp_path)
+        log_memory("FeatureExtractor.extract_features complete")
         
         # Populate AudioMetadata and map computed properties
         metadata = AudioMetadata(
@@ -109,7 +122,9 @@ def analyze_audio(
         )
         
         # Compile Music DNA profile
+        log_memory("Calling MusicDNAService.compile_dna")
         raw_dna = dna_service.compile_dna(raw_metadata)
+        log_memory("MusicDNAService.compile_dna complete")
         music_dna = MusicDNA(
             energy=raw_dna["energy"],
             brightness=raw_dna["brightness"],
@@ -121,11 +136,14 @@ def analyze_audio(
             silence=raw_dna["silence"]
         )
         
-        return AnalysisResponse(
+        log_memory("Preparing AnalysisResponse serialization")
+        response_obj = AnalysisResponse(
             success=True,
             metadata=metadata,
             musicDNA=music_dna
         )
+        log_memory("AnalysisResponse serialized successfully")
+        return response_obj
         
     except FileNotFoundError as e:
         raise HTTPException(
