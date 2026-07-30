@@ -64,7 +64,11 @@ const uploadAudio = multer({
 }).single("audio");
 
 export const uploadAudioMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  (req as any).startTime = performance.now();
+  console.log(`[T0] Upload request received - Timestamp: ${new Date().toISOString()}, Elapsed: 0.00ms`);
   uploadAudio(req, res, (err) => {
+    const elapsed = performance.now() - (req as any).startTime;
+    console.log(`[T1] File saved - Timestamp: ${new Date().toISOString()}, Elapsed: ${elapsed.toFixed(2)}ms`);
     if (err) {
       if (err instanceof multer.MulterError) {
         if (err.code === "LIMIT_FILE_SIZE") {
