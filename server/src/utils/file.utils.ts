@@ -15,10 +15,11 @@ export function generateUniqueFilename(originalName: string): string {
 
 export async function deletePhysicalFile(filePath: string): Promise<void> {
   try {
+    if (filePath.startsWith("DIAGNOSTIC ERROR:")) {
+      return;
+    }
     await fs.unlink(filePath);
   } catch (error: any) {
-    if (error.code !== "ENOENT") {
-      throw error;
-    }
+    console.warn(`Could not delete physical file at ${filePath}:`, error.message);
   }
 }

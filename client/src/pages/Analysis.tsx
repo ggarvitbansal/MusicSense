@@ -137,6 +137,35 @@ export default function AnalysisPage() {
     }
   };
 
+  const handleDeleteUpload = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this upload? This will also remove any associated analysis.")) return;
+    
+    // Optimistic UI update: remove from state immediately
+    const previousUploads = uploads;
+    setUploads(uploads.filter(u => u.id !== id));
+    
+    // Clear selection if currently viewing/analyzing this track
+    if (selectedTrack?.id === id) {
+      handleBackToHistory();
+    }
+    
+    try {
+      const res = await API.delete(`/uploads/${id}`);
+      if (res.data?.success) {
+        await fetchData(); // Refresh list to sync with server
+      } else {
+        // Rollback state if not successful
+        setUploads(previousUploads);
+        alert("Failed to delete upload.");
+      }
+    } catch (err: any) {
+      // Rollback state
+      setUploads(previousUploads);
+      alert(err.response?.data?.message || "Failed to delete upload.");
+    }
+  };
+
   const handleBackToHistory = () => {
     setSelectedTrack(null);
     setAnalysisData(null);
@@ -439,7 +468,7 @@ export default function AnalysisPage() {
                     <td className="p-4 text-gray-400 font-mono">
                       {new Date(upload.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right flex items-center justify-end space-x-2">
                       <Button
                         onClick={() => handleAnalyze(upload)}
                         disabled={upload.status === "PROCESSING"}
@@ -447,6 +476,14 @@ export default function AnalysisPage() {
                       >
                         <Play className="h-3.5 w-3.5 mr-1 inline-block shrink-0" />
                         {upload.status === "COMPLETED" ? "Re-Analyze" : "Analyze"}
+                      </Button>
+                      <Button
+                        onClick={(e) => handleDeleteUpload(upload.id, e)}
+                        disabled={upload.status === "PROCESSING"}
+                        className="bg-red-600 hover:bg-red-750 text-white font-semibold px-4 py-1.5 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-55"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-1 inline-block shrink-0" />
+                        Delete
                       </Button>
                     </td>
                   </tr>
