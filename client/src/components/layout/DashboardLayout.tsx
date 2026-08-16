@@ -21,7 +21,7 @@ export default function DashboardLayout() {
         <Topbar onOpenSidebar={() => setIsMobileSidebarOpen(true)} />
 
         {/* Dashboard Content Outlet */}
-        <main className="flex-grow p-6 md:p-8 max-w-7xl w-full mx-auto pb-24" role="main">
+        <main className="flex-grow p-6 md:p-8 max-w-7xl w-full mx-auto pb-36" role="main">
           <Outlet />
         </main>
       </div>

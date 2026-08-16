@@ -1,4 +1,5 @@
-import { Play, Pause, Volume2, X, SkipForward, SkipBack } from "lucide-react";
+import { useState } from "react";
+import { Play, Pause, Volume2, Volume1, VolumeX, X, SkipForward, SkipBack } from "lucide-react";
 import { usePlayback } from "@/context/PlaybackContext";
 
 export default function AudioPlayer() {
@@ -9,8 +10,12 @@ export default function AudioPlayer() {
     duration,
     currentTime,
     seek,
-    pauseTrack,
+    volume,
+    setVolume,
+    dismissPlayer,
   } = usePlayback();
+
+  const [prevVolume, setPrevVolume] = useState(0.8);
 
   if (!currentTrack) return null;
 
@@ -23,6 +28,23 @@ export default function AudioPlayer() {
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     seek(parseFloat(e.target.value));
   };
+
+  const toggleMute = () => {
+    if (volume > 0) {
+      setPrevVolume(volume);
+      setVolume(0);
+    } else {
+      setVolume(prevVolume || 0.8);
+    }
+  };
+
+  const getVolumeIcon = () => {
+    if (volume === 0) return VolumeX;
+    if (volume < 0.5) return Volume1;
+    return Volume2;
+  };
+  
+  const VolumeIcon = getVolumeIcon();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-950/85 backdrop-blur-md border-t border-gray-800 z-50 px-6 py-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8 transition-transform duration-300">
@@ -79,13 +101,25 @@ export default function AudioPlayer() {
       {/* Right: Volume & Dismiss Controls */}
       <div className="flex items-center justify-end gap-4 w-full md:w-1/4">
         <div className="flex items-center gap-2">
-          <Volume2 className="h-4 w-4 text-gray-400" />
-          <div className="w-16 bg-gray-800 h-1 rounded-full overflow-hidden">
-            <div className="bg-gray-400 h-full w-2/3" />
-          </div>
+          <button 
+            onClick={toggleMute}
+            className="text-gray-400 hover:text-white transition cursor-pointer"
+            title={volume === 0 ? "Unmute" : "Mute"}
+          >
+            <VolumeIcon className="h-4.5 w-4.5" />
+          </button>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={volume}
+            onChange={(e) => setVolume(parseFloat(e.target.value))}
+            className="w-16 accent-emerald-500 bg-gray-800 h-1 rounded-lg appearance-none cursor-pointer"
+          />
         </div>
         <button
-          onClick={pauseTrack}
+          onClick={dismissPlayer}
           className="p-1 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg transition cursor-pointer"
           title="Dismiss player"
         >
