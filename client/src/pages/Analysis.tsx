@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Play, Loader2, Library, AlertCircle, ArrowLeft, Trash2, BarChart2 } from "lucide-react";
+import { Play, Pause, Loader2, Library, AlertCircle, ArrowLeft, Trash2, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import API from "@/services/api";
 import {
@@ -9,6 +9,7 @@ import {
   TechnicalDetails,
   ComingSoonSection,
 } from "@/components/dashboard";
+import { usePlayback } from "@/context/PlaybackContext";
 
 interface AudioFile {
   id: string;
@@ -16,12 +17,14 @@ interface AudioFile {
   size: number;
   status: "UPLOADED" | "PROCESSING" | "COMPLETED" | "FAILED";
   createdAt: string;
+  url?: string;
 }
 
 interface AnalysisRecord {
   id: string;
   audioFileId: string;
   filename: string;
+  url?: string;
   metadata: {
     duration: number;
     sampleRate: number;
@@ -52,7 +55,9 @@ interface AnalysisRecord {
   createdAt: string;
 }
 
+
 export default function AnalysisPage() {
+  const { currentTrack, isPlaying, playTrack } = usePlayback();
   const [activeTab, setActiveTab] = useState<"history" | "library">("history");
   const [history, setHistory] = useState<AnalysisRecord[]>([]);
   const [uploads, setUploads] = useState<AudioFile[]>([]);
@@ -63,6 +68,8 @@ export default function AnalysisPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState("");
   const [analysisData, setAnalysisData] = useState<AnalysisRecord | null>(null);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [loadingRecs, setLoadingRecs] = useState(false);
 
   // Fetch both analysis history and raw library uploads
   const fetchData = async () => {
@@ -94,6 +101,20 @@ export default function AnalysisPage() {
     fetchData();
   }, []);
 
+  const fetchRecommendations = async (analysisId: string) => {
+    setLoadingRecs(true);
+    try {
+      const res = await API.get(`/analysis/${analysisId}/recommendations`);
+      if (res.data?.success) {
+        setRecommendations(res.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to load recommendations", err);
+    } finally {
+      setLoadingRecs(false);
+    }
+  };
+
   const handleAnalyze = async (track: AudioFile) => {
     setSelectedTrack({ id: track.id, originalName: track.originalName });
     setAnalyzing(true);
@@ -105,6 +126,7 @@ export default function AnalysisPage() {
       if (res.data?.success && res.data?.data) {
         setAnalysisData(res.data.data);
         await fetchData(); // Refresh local list
+        fetchRecommendations(res.data.data.id);
       } else {
         throw new Error("Invalid response format received from analysis engine.");
       }
@@ -121,6 +143,7 @@ export default function AnalysisPage() {
   const handleViewAnalysis = (record: AnalysisRecord) => {
     setSelectedTrack({ id: record.audioFileId, originalName: record.filename });
     setAnalysisData(record);
+    fetchRecommendations(record.id);
   };
 
   const handleDeleteAnalysis = async (id: string, e: React.MouseEvent) => {
@@ -170,6 +193,7 @@ export default function AnalysisPage() {
     setSelectedTrack(null);
     setAnalysisData(null);
     setAnalysisError("");
+    setRecommendations([]);
   };
 
   const formatSize = (bytes: number) => {
@@ -231,6 +255,8 @@ export default function AnalysisPage() {
           sampleRate={metadata.sampleRate}
           channels={metadata.channels}
           tempo={metadata.tempo || 0}
+          url={analysisData.url}
+          trackId={analysisData.id}
         />
 
         {/* Section 2: Music DNA */}
@@ -255,7 +281,65 @@ export default function AnalysisPage() {
           rawDetails={rawDetails}
         />
 
-        {/* Section 5: Future Intelligence */}
+        {/* Section 5: Acoustic Recommendations */}
+        <div className="space-y-4 pt-6 border-t border-gray-800">
+          <div>
+            <h3 className="text-base font-bold text-white tracking-tight">Acoustic Matches</h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Tracks with the most similar Music DNA signatures from your library.
+            </p>
+          </div>
+
+          {loadingRecs ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 text-emerald-500 animate-spin" />
+            </div>
+          ) : recommendations.length === 0 ? (
+            <div className="bg-gray-900/30 border border-gray-800 rounded-xl p-6 text-center text-xs text-gray-400">
+              No other analyzed tracks available for similarity matching. Upload more tracks to populate recommendations.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recommendations.map((rec) => (
+                <div
+                  key={rec.id}
+                  className="bg-gray-900/40 border border-gray-800 rounded-xl p-4 flex items-center justify-between hover:border-emerald-500/20 transition group duration-300"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <button
+                      onClick={() => playTrack({ id: rec.id, name: rec.filename, url: rec.url || "" })}
+                      disabled={!rec.url}
+                      className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500 hover:text-black transition cursor-pointer disabled:opacity-50 shrink-0"
+                    >
+                      {currentTrack?.id === rec.id && isPlaying ? (
+                        <Pause className="h-3.5 w-3.5 fill-current" />
+                      ) : (
+                        <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
+                      )}
+                    </button>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white truncate" title={rec.filename}>
+                        {rec.filename}
+                      </p>
+                      <p className="text-[10px] text-gray-500">
+                        {Math.round(rec.metadata.tempo)} BPM • Distance score: <span className="font-semibold text-emerald-400">{rec.distance}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleViewAnalysis(rec)}
+                    className="text-xs font-semibold text-emerald-400 hover:text-emerald-350 opacity-0 group-hover:opacity-100 transition cursor-pointer shrink-0"
+                  >
+                    View DNA
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Section 6: Future Intelligence */}
         <ComingSoonSection />
       </div>
     );
@@ -374,8 +458,24 @@ export default function AnalysisPage() {
                       onClick={() => handleViewAnalysis(record)}
                       className="hover:bg-gray-950/15 cursor-pointer transition-colors"
                     >
-                      <td className="p-4 font-medium text-white truncate max-w-xs md:max-w-md">
-                        {record.filename}
+                      <td className="p-4 font-medium text-white max-w-xs md:max-w-md">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playTrack({ id: record.id, name: record.filename, url: record.url || "" });
+                            }}
+                            disabled={!record.url}
+                            className="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500 hover:text-black transition cursor-pointer disabled:opacity-50 shrink-0"
+                          >
+                            {currentTrack?.id === record.id && isPlaying ? (
+                              <Pause className="h-3.5 w-3.5 fill-current" />
+                            ) : (
+                              <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
+                            )}
+                          </button>
+                          <span className="truncate">{record.filename}</span>
+                        </div>
                       </td>
                       <td className="p-4 text-gray-400 font-mono">
                         {new Date(record.createdAt).toLocaleDateString()}
@@ -444,8 +544,24 @@ export default function AnalysisPage() {
               <tbody className="divide-y divide-gray-800">
                 {uploads.map((upload) => (
                   <tr key={upload.id} className="hover:bg-gray-950/10 transition-colors">
-                    <td className="p-4 font-medium text-white truncate max-w-xs md:max-w-md">
-                      {upload.originalName}
+                    <td className="p-4 font-medium text-white max-w-xs md:max-w-md">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playTrack({ id: upload.id, name: upload.originalName, url: upload.url || "" });
+                          }}
+                          disabled={!upload.url}
+                          className="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500 hover:text-black transition cursor-pointer disabled:opacity-55 shrink-0"
+                        >
+                          {currentTrack?.id === upload.id && isPlaying ? (
+                            <Pause className="h-3.5 w-3.5 fill-current" />
+                          ) : (
+                            <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
+                          )}
+                        </button>
+                        <span className="truncate">{upload.originalName}</span>
+                      </div>
                     </td>
                     <td className="p-4 text-gray-400 font-mono">
                       {formatSize(upload.size)}

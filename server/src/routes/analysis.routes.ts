@@ -8,7 +8,9 @@ const router = Router();
 router.use(authenticateJWT);
 
 router.get("/", analysisController.getAnalyses);
+router.get("/stats", analysisController.getStats);
 router.get("/:id", analysisController.getAnalysisById);
+router.get("/:id/recommendations", analysisController.getRecommendations);
 router.delete("/:id", analysisController.deleteAnalysis);
 
 export default router;

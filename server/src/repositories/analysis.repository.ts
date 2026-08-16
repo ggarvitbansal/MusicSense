@@ -17,6 +17,9 @@ export class AnalysisRepository {
   async findByUserId(userId: string) {
     return prisma.analysis.findMany({
       where: { userId },
+      include: {
+        audioFile: true,
+      },
       orderBy: { createdAt: "desc" },
     });
   }

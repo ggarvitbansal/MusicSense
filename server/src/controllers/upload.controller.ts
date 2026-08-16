@@ -3,6 +3,21 @@ import { uploadService } from "../services/upload.service.js";
 import { UploadIdParamSchema } from "../validators/upload.validator.js";
 import { z } from "zod";
 
+const addUploadUrl = (req: Request, upload: any) => {
+  if (!upload) return upload;
+  const protocol = req.protocol;
+  const host = req.get("host");
+  const baseUrl = `${protocol}://${host}`;
+  return {
+    ...upload,
+    url: `${baseUrl}/uploads/files/${upload.storedName}`,
+  };
+};
+
+const addUploadsUrl = (req: Request, uploads: any[]) => {
+  return uploads.map((u) => addUploadUrl(req, u));
+};
+
 export class UploadController {
   async createUpload(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -37,7 +52,7 @@ export class UploadController {
 
       res.status(201).json({
         success: true,
-        data: updatedUpload,
+        data: addUploadUrl(req, updatedUpload),
       });
     } catch (error) {
       next(error);
@@ -56,7 +71,7 @@ export class UploadController {
       
       res.status(200).json({
         success: true,
-        data: uploads,
+        data: addUploadsUrl(req, uploads),
       });
     } catch (error) {
       next(error);
@@ -76,7 +91,7 @@ export class UploadController {
 
       res.status(200).json({
         success: true,
-        data: upload,
+        data: addUploadUrl(req, upload),
       });
     } catch (error: any) {
       if (error instanceof z.ZodError) {

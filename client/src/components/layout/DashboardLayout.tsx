@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import AudioPlayer from "./AudioPlayer";
 
 export default function DashboardLayout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -20,10 +21,14 @@ export default function DashboardLayout() {
         <Topbar onOpenSidebar={() => setIsMobileSidebarOpen(true)} />
 
         {/* Dashboard Content Outlet */}
-        <main className="flex-grow p-6 md:p-8 max-w-7xl w-full mx-auto" role="main">
+        <main className="flex-grow p-6 md:p-8 max-w-7xl w-full mx-auto pb-24" role="main">
           <Outlet />
         </main>
       </div>
+
+      {/* Global Audio Player Bar */}
+      <AudioPlayer />
     </div>
   );
 }
+

@@ -80,7 +80,7 @@ Build the foundational structure of the mono-repository.
 - [x] Build core routing system using React Router v6.
 - [x] Implement initial landing page and layout structure.
 - [x] Establish unified Axios HTTP client.
-- [ ] Implement global Backend Error Handling Middleware.
+- [x] Implement global Backend Error Handling Middleware.
 
 ### Phase 2 — Database (Complete)
 Create the database layer and model relationships.
@@ -97,7 +97,7 @@ Secure access to the API and manage user accounts.
 - [x] Implement password hashing via BCrypt.
 - [x] Establish `authenticateJWT` middleware.
 - [x] Secure sensitive API endpoints.
-- [ ] Build Register and Login pages in the React client.
+- [x] Build Register and Login pages in the React client.
 
 ### Phase 4 — Music Upload (Complete)
 Ingest raw audio files into secure server storage.
@@ -105,7 +105,7 @@ Ingest raw audio files into secure server storage.
 - [x] Implement size validations (strict 25MB cap) and format restrictions (MP3, WAV, FLAC, OGG, M4A).
 - [x] Configure UUID-based file renaming to prevent local directory collisions.
 - [x] Map file metadata to `AudioFile` schema in PostgreSQL.
-- [ ] Create Upload Component in the React client.
+- [x] Create Upload Component in the React client.
 
 ### Phase 5 — AI Processing (In Progress)
 Build the audio intelligence worker service.
@@ -117,7 +117,7 @@ Build the audio intelligence worker service.
 - [x] Synchronize architectural documentation layers (Documentation Sprint).
 - [ ] Build classification pipelines for genre and mood (Music DNA Compiler milestone).
 - [x] Configure REST interface (FastAPI) inside the ML service.
-- [ ] Connect the Express server upload handler to trigger ML analysis via HTTP.
+- [x] Connect the Express server upload handler to trigger ML analysis via HTTP.
 
 ### Phase 6 — Dashboard (Planned)
 Create user interfaces for visual exploration.

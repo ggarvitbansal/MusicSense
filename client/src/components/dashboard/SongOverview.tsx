@@ -1,4 +1,5 @@
-import { FileAudio, Clock, Disc, Cpu, Zap } from "lucide-react";
+import { FileAudio, Clock, Disc, Cpu, Zap, Play, Pause } from "lucide-react";
+import { usePlayback } from "@/context/PlaybackContext";
 
 interface SongOverviewProps {
   filename: string;
@@ -6,6 +7,8 @@ interface SongOverviewProps {
   sampleRate: number;
   channels: number;
   tempo: number;
+  url?: string;
+  trackId?: string;
 }
 
 export default function SongOverview({
@@ -14,7 +17,11 @@ export default function SongOverview({
   sampleRate,
   channels,
   tempo,
+  url,
+  trackId,
 }: SongOverviewProps) {
+  const { currentTrack, isPlaying, playTrack } = usePlayback();
+
   const formatDuration = (secs: number) => {
     const mins = Math.floor(secs / 60);
     const remainingSecs = Math.floor(secs % 60);
@@ -64,7 +71,20 @@ export default function SongOverview({
             {filename}
           </h3>
         </div>
+        {url && trackId && (
+          <button
+            onClick={() => playTrack({ id: trackId, name: filename, url })}
+            className="w-10 h-10 rounded-full bg-emerald-500 hover:bg-emerald-600 text-black flex items-center justify-center transition cursor-pointer shadow-sm shrink-0"
+          >
+            {currentTrack?.id === trackId && isPlaying ? (
+              <Pause className="h-4.5 w-4.5 fill-current" />
+            ) : (
+              <Play className="h-4.5 w-4.5 fill-current ml-0.5" />
+            )}
+          </button>
+        )}
       </div>
+
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card, i) => (

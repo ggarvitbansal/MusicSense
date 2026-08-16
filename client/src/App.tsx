@@ -8,26 +8,29 @@ import UploadPage from "@/pages/Upload";
 import AnalysisPage from "@/pages/Analysis";
 import SettingsPage from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
+import { PlaybackProvider } from "@/context/PlaybackContext";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        
-        {/* Dashboard Shell Nested Routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="upload" element={<UploadPage />} />
-          <Route path="analysis" element={<AnalysisPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-        </Route>
+    <PlaybackProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Dashboard Shell Nested Routes */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="upload" element={<UploadPage />} />
+            <Route path="analysis" element={<AnalysisPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </PlaybackProvider>
   );
 }
 

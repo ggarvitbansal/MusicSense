@@ -1,15 +1,25 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
 import analysisRoutes from "./routes/analysis.routes.js";
+import settingsRoutes from "./routes/settings.routes.js";
 
 import { Prisma } from "@prisma/client";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static uploads
+app.use("/uploads/files", express.static(path.join(__dirname, "../uploads")));
+
 
 // Base Route
 app.get("/", (_req, res) => {
@@ -26,6 +36,10 @@ app.use("/uploads", uploadRoutes);
 
 // Analysis Routes
 app.use("/analysis", analysisRoutes);
+
+// Settings Routes
+app.use("/settings", settingsRoutes);
+
 
 // Central Error Handler
 app.use((
