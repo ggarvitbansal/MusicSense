@@ -16,6 +16,8 @@ interface PlaybackContextType {
   duration: number;
   currentTime: number;
   seek: (time: number) => void;
+  error: string | null;
+  clearError: () => void;
 }
 
 const PlaybackContext = createContext<PlaybackContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -39,15 +42,22 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
       setIsPlaying(false);
       setCurrentTime(0);
     };
+    const onError = (e: Event) => {
+      console.error("Audio playback error event", e);
+      setIsPlaying(false);
+      setError("Playback failed. This track's physical file might have been wiped from ephemeral server storage during a redeploy.");
+    };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("durationchange", onDurationChange);
     audio.addEventListener("ended", onEnded);
+    audio.addEventListener("error", onError);
 
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("durationchange", onDurationChange);
       audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("error", onError);
       audio.pause();
     };
   }, []);
@@ -55,12 +65,18 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
   const playTrack = (track: Track) => {
     if (!audioRef.current) return;
     
+    // Clear any previous error
+    setError(null);
+    
     if (currentTrack?.id === track.id) {
       if (isPlaying) {
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        audioRef.current.play().catch((err) => console.error("Playback failed", err));
+        audioRef.current.play().catch((err) => {
+          console.error("Playback failed", err);
+          setError("Playback failed. The audio stream could not be loaded.");
+        });
         setIsPlaying(true);
       }
       return;
@@ -74,6 +90,7 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
       .catch((err) => {
         console.error("Playback failed to start", err);
         setIsPlaying(false);
+        setError("Failed to load audio track. If the server was redeployed, the physical file might have been wiped.");
       });
   };
 
@@ -85,7 +102,11 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
 
   const resumeTrack = () => {
     if (!audioRef.current || !currentTrack) return;
-    audioRef.current.play().catch((err) => console.error("Resume failed", err));
+    setError(null);
+    audioRef.current.play().catch((err) => {
+      console.error("Resume failed", err);
+      setError("Failed to resume playback.");
+    });
     setIsPlaying(true);
   };
 
@@ -103,6 +124,10 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
     setCurrentTime(time);
   };
 
+  const clearError = () => {
+    setError(null);
+  };
+
   return (
     <PlaybackContext.Provider
       value={{
@@ -115,6 +140,8 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
         duration,
         currentTime,
         seek,
+        error,
+        clearError,
       }}
     >
       {children}
@@ -129,3 +156,4 @@ export function usePlayback() {
   }
   return context;
 }
+
