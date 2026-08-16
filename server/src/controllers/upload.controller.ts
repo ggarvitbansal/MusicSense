@@ -3,14 +3,18 @@ import { uploadService } from "../services/upload.service.js";
 import { UploadIdParamSchema } from "../validators/upload.validator.js";
 import { z } from "zod";
 
+const getBaseUrl = (req: Request) => {
+  const protocol = (req.headers["x-forwarded-proto"] as string) || req.protocol;
+  const host = req.get("host");
+  return `${protocol}://${host}`;
+};
+
 const addUploadUrl = (req: Request, upload: any) => {
   if (!upload) return upload;
-  const protocol = req.protocol;
-  const host = req.get("host");
-  const baseUrl = `${protocol}://${host}`;
+  const baseUrl = getBaseUrl(req);
   return {
     ...upload,
-    url: `${baseUrl}/uploads/files/${upload.storedName}`,
+    url: upload.storedName ? `${baseUrl}/uploads/files/${upload.storedName}` : null,
   };
 };
 

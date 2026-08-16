@@ -13,12 +13,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.enable("trust proxy");
 
 app.use(cors());
 app.use(express.json());
 
 // Serve static uploads
-app.use("/uploads/files", express.static(path.join(__dirname, "../uploads")));
+app.use("/uploads/files", express.static(path.join(process.cwd(), "uploads")));
 
 
 // Base Route

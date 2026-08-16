@@ -6,11 +6,15 @@ const AnalysisIdParamSchema = z.object({
   id: z.string().uuid("Invalid analysis ID format"),
 });
 
+const getBaseUrl = (req: Request) => {
+  const protocol = (req.headers["x-forwarded-proto"] as string) || req.protocol;
+  const host = req.get("host");
+  return `${protocol}://${host}`;
+};
+
 const addAnalysisUrl = (req: Request, analysis: any) => {
   if (!analysis) return analysis;
-  const protocol = req.protocol;
-  const host = req.get("host");
-  const baseUrl = `${protocol}://${host}`;
+  const baseUrl = getBaseUrl(req);
   return {
     ...analysis,
     url: analysis.storedName ? `${baseUrl}/uploads/files/${analysis.storedName}` : null,
@@ -139,9 +143,7 @@ export class AnalysisController {
       const params = await AnalysisIdParamSchema.parseAsync(req.params);
       const list = await analysisService.getRecommendations(params.id, userId);
       
-      const protocol = req.protocol;
-      const host = req.get("host");
-      const baseUrl = `${protocol}://${host}`;
+      const baseUrl = getBaseUrl(req);
       const mappedList = list.map(item => ({
         ...item,
         url: item.storedName ? `${baseUrl}/uploads/files/${item.storedName}` : null,
