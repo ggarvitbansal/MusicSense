@@ -10,8 +10,6 @@ export default function AudioPlayer() {
     currentTime,
     seek,
     pauseTrack,
-    error,
-    clearError,
   } = usePlayback();
 
   if (!currentTrack) return null;
@@ -27,22 +25,7 @@ export default function AudioPlayer() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-950/85 backdrop-blur-md border-t border-gray-800 z-50 transition-all duration-300">
-      {error && (
-        <div className="bg-red-500/15 border-b border-red-500/20 text-red-400 text-xs px-6 py-2 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-red-500">⚠️ Playback Error:</span>
-            <span>{error}</span>
-          </div>
-          <button 
-            onClick={clearError}
-            className="text-red-400 hover:text-white font-semibold px-2 py-0.5 rounded hover:bg-red-500/10 transition cursor-pointer"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-      <div className="px-6 py-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-950/85 backdrop-blur-md border-t border-gray-800 z-50 px-6 py-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8 transition-transform duration-300">
       {/* Left: Track Information */}
       <div className="flex items-center gap-3 w-full md:w-1/4 min-w-0">
         <div className="w-10 h-10 rounded-lg bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg shrink-0">
@@ -108,7 +91,6 @@ export default function AudioPlayer() {
         >
           <X className="h-4 w-4" />
         </button>
-      </div>
       </div>
     </div>
   );
