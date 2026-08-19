@@ -60,9 +60,10 @@ class FeatureExtractor:
             
             if settings.LIGHTWEIGHT_MODE:
                 log_memory("Loading 30s audio segment natively via SoundFile")
-                # We read only the first 30 seconds (sr * 30 frames) to conserve RAM
+                # Read 30s from the middle of the track to avoid intro/outro bias
                 frames_to_read = int(sr * 30)
-                y, sr = sf.read(file_path, frames=frames_to_read, dtype="float32")
+                start_frame = max(0, int(sr * (real_duration / 2.0 - 15.0))) if real_duration > 60 else 0
+                y, sr = sf.read(file_path, start=start_frame, frames=frames_to_read, dtype="float32")
             else:
                 log_memory("Loading full audio segment natively via SoundFile")
                 y, sr = sf.read(file_path, dtype="float32")
@@ -89,7 +90,8 @@ class FeatureExtractor:
             try:
                 if settings.LIGHTWEIGHT_MODE:
                     log_memory("Librosa Fallback: Loading 30s segment via librosa.load")
-                    y, sr = librosa.load(file_path, sr=None, mono=False, duration=30.0)
+                    offset = max(0.0, real_duration / 2.0 - 15.0) if real_duration > 60 else 0.0
+                    y, sr = librosa.load(file_path, sr=None, mono=False, duration=30.0, offset=offset)
                 else:
                     log_memory("Librosa Fallback: Loading full segment via librosa.load")
                     y, sr = librosa.load(file_path, sr=None, mono=False)
@@ -133,12 +135,14 @@ class FeatureExtractor:
             try:
                 # Compute onset envelope using S_magnitude to bypass redundant STFT calculations
                 onset_env = librosa.onset.onset_strength(y=y_mono, sr=core_props["sampleRate"], S=S_magnitude, hop_length=hop_length)
-                tempo_val = extract_tempo(y_mono, core_props["sampleRate"], onset_envelope=onset_env)
+                onset_mean = float(np.mean(onset_env)) if onset_env is not None else 0.0
+                tempo_val, beat_regularity = extract_tempo(y_mono, core_props["sampleRate"], onset_envelope=onset_env)
                 del onset_env
                 gc.collect()
             except Exception as e:
                 log_memory(f"[LIGHTWEIGHT MODE] Onset envelope failed: {str(e)}")
-                tempo_val = extract_tempo(y_mono, core_props["sampleRate"])
+                tempo_val, beat_regularity = extract_tempo(y_mono, core_props["sampleRate"])
+                onset_mean = 0.0
 
             log_memory("[LIGHTWEIGHT MODE] Extracting RMS (using magnitude)")
             rms_list = extract_rms(y_mono, S=S_magnitude)
@@ -209,7 +213,9 @@ class FeatureExtractor:
                 "spectral_contrast": contrast_means,
                 "harmonic_energy": harmonic_energy,
                 "percussive_energy": percussive_energy,
-                "silence_ratio": silence_val
+                "silence_ratio": silence_val,
+                "beat_regularity": beat_regularity,
+                "onset_mean": onset_mean
             }
 
         # 6. [FULL MODE] Pre-compute STFT magnitude and power spectrograms once to reuse across extractors
@@ -236,11 +242,13 @@ class FeatureExtractor:
         log_memory("Computing onset envelope")
         try:
             onset_env = librosa.onset.onset_strength(y=y_mono, sr=core_props["sampleRate"], S=S_magnitude, hop_length=hop_length)
-            tempo_val = extract_tempo(y_mono, core_props["sampleRate"], onset_envelope=onset_env)
+            onset_mean = float(np.mean(onset_env)) if onset_env is not None else 0.0
+            tempo_val, beat_regularity = extract_tempo(y_mono, core_props["sampleRate"], onset_envelope=onset_env)
             del onset_env
             gc.collect()
         except Exception:
-            tempo_val = extract_tempo(y_mono, core_props["sampleRate"])
+            tempo_val, beat_regularity = extract_tempo(y_mono, core_props["sampleRate"])
+            onset_mean = 0.0
 
         log_memory("Extracting RMS (using magnitude)")
         rms_list = extract_rms(y_mono, S=S_magnitude)
@@ -302,5 +310,7 @@ class FeatureExtractor:
             "spectral_contrast": contrast_means,
             "harmonic_energy": hpss_res.get("harmonic_energy"),
             "percussive_energy": hpss_res.get("percussive_energy"),
-            "silence_ratio": silence_val
+            "silence_ratio": silence_val,
+            "beat_regularity": beat_regularity,
+            "onset_mean": onset_mean
         }
