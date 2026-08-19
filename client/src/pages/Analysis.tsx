@@ -101,6 +101,18 @@ export default function AnalysisPage() {
     fetchData();
   }, []);
 
+  // Auto-poll every 5 seconds if any upload is currently in PROCESSING status
+  useEffect(() => {
+    const hasProcessing = uploads.some((u) => u.status === "PROCESSING");
+    if (!hasProcessing) return;
+
+    const interval = setInterval(() => {
+      fetchData();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [uploads]);
+
   const fetchRecommendations = async (analysisId: string) => {
     setLoadingRecs(true);
     try {

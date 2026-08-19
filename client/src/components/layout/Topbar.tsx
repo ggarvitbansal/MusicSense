@@ -1,11 +1,12 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { Menu, User } from "lucide-react";
 
 interface TopbarProps {
   onOpenSidebar: () => void;
+  user: { name: string; email: string } | null;
 }
 
-export default function Topbar({ onOpenSidebar }: TopbarProps) {
+export default function Topbar({ onOpenSidebar, user }: TopbarProps) {
   const location = useLocation();
 
   const getPageTitle = (path: string) => {
@@ -39,17 +40,23 @@ export default function Topbar({ onOpenSidebar }: TopbarProps) {
         </h1>
       </div>
 
-      {/* Profile/User Menu Placeholder */}
-      <div className="flex items-center gap-4">
-        <span className="hidden sm:inline text-sm text-gray-400 font-medium">Guest User</span>
+      {/* Profile/User Menu */}
+      <Link
+        to="/dashboard/settings"
+        className="flex items-center gap-4 hover:opacity-80 transition cursor-pointer"
+        aria-label="User settings"
+      >
+        <span className="hidden sm:inline text-sm text-gray-400 font-medium hover:text-white transition-colors">
+          {user?.name || "Guest User"}
+        </span>
         <div 
-          className="w-8 h-8 rounded-full bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center cursor-pointer"
+          className="w-8 h-8 rounded-full bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-600/20 transition"
           role="img"
           aria-label="User profile avatar"
         >
           <User className="h-4 w-4" />
         </div>
-      </div>
+      </Link>
     </header>
   );
 }

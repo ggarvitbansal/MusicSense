@@ -58,10 +58,14 @@ class FeatureExtractor:
             sr = int(info.samplerate)
             log_memory(f"SoundFile duration={real_duration:.2f}s, sample_rate={sr}, channels={info.channels}")
             
-            log_memory("Loading 30s audio segment natively via SoundFile")
-            # We read only the first 30 seconds (sr * 30 frames) to conserve RAM
-            frames_to_read = int(sr * 30)
-            y, sr = sf.read(file_path, frames=frames_to_read, dtype="float32")
+            if settings.LIGHTWEIGHT_MODE:
+                log_memory("Loading 30s audio segment natively via SoundFile")
+                # We read only the first 30 seconds (sr * 30 frames) to conserve RAM
+                frames_to_read = int(sr * 30)
+                y, sr = sf.read(file_path, frames=frames_to_read, dtype="float32")
+            else:
+                log_memory("Loading full audio segment natively via SoundFile")
+                y, sr = sf.read(file_path, dtype="float32")
             
             # soundfile.read returns (samples, channels) for multi-channel audio.
             # We transpose it to (channels, samples) to match librosa's layout.
@@ -83,8 +87,12 @@ class FeatureExtractor:
                 real_duration = 0.0
 
             try:
-                log_memory("Librosa Fallback: Loading 30s segment via librosa.load")
-                y, sr = librosa.load(file_path, sr=None, mono=False, duration=30.0)
+                if settings.LIGHTWEIGHT_MODE:
+                    log_memory("Librosa Fallback: Loading 30s segment via librosa.load")
+                    y, sr = librosa.load(file_path, sr=None, mono=False, duration=30.0)
+                else:
+                    log_memory("Librosa Fallback: Loading full segment via librosa.load")
+                    y, sr = librosa.load(file_path, sr=None, mono=False)
                 log_memory(f"Librosa Fallback loaded shape: {y.shape}, sample_rate={sr}")
             except Exception as e:
                 raise ValueError(f"Invalid, corrupted, or unsupported audio format: {str(e)}")
@@ -261,8 +269,15 @@ class FeatureExtractor:
         
         log_memory("Extracting MFCC")
         mfcc_means = extract_mfcc(y_mono, core_props["sampleRate"])
-        log_memory("Extracting HPSS energy")
-        hpss_res = extract_hpss_energy(y_mono)
+        log_memory("Extracting HPSS energy (resampling mono to 11025 Hz for high-speed calculation)")
+        try:
+            y_11k = librosa.resample(y_mono, orig_sr=core_props["sampleRate"], target_sr=11025)
+            hpss_res = extract_hpss_energy(y_11k)
+            del y_11k
+            gc.collect()
+        except Exception as hpss_err:
+            log_memory(f"Resampled HPSS failed: {str(hpss_err)}. Falling back to original waveform.")
+            hpss_res = extract_hpss_energy(y_mono)
         log_memory("Extracting silence ratio")
         silence_val = extract_silence_ratio(rms_list)
 

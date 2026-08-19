@@ -41,22 +41,21 @@ export class UploadController {
       const elapsed2 = performance.now() - ((req as any).startTime || performance.now());
       console.log(`[T2] Database insert complete - Timestamp: ${new Date().toISOString()}, Elapsed: ${elapsed2.toFixed(2)}ms`);
       
-      // Auto-trigger analysis immediately while the file is guaranteed to be on disk in this container session
-      try {
-        await uploadService.analyzeUpload(upload.id, userId, (req as any).startTime);
-      } catch (err) {
-        console.error("Auto-analysis failed during upload:", err);
-      }
+      // Trigger background analysis asynchronously (unawaited) so the upload HTTP response finishes immediately
+      uploadService.analyzeUpload(upload.id, userId, (req as any).startTime)
+        .then(() => {
+          console.log(`[Async Analysis] Completed successfully for upload ID: ${upload.id}`);
+        })
+        .catch((err) => {
+          console.error(`[Async Analysis] Failed for upload ID: ${upload.id}:`, err);
+        });
 
-      // Retrieve the updated upload record (which now has COMPLETED or FAILED status)
-      const updatedUpload = await uploadService.getUploadById(upload.id, userId);
-      
       const elapsed8 = performance.now() - ((req as any).startTime || performance.now());
       console.log(`[T8] Returning HTTP response - Timestamp: ${new Date().toISOString()}, Elapsed: ${elapsed8.toFixed(2)}ms`);
 
       res.status(201).json({
         success: true,
-        data: addUploadUrl(req, updatedUpload),
+        data: addUploadUrl(req, upload),
       });
     } catch (error) {
       next(error);

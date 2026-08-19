@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, UploadCloud, Activity, Settings, X } from "lucide-react";
+import { LayoutDashboard, UploadCloud, Activity, Settings, X, LogOut } from "lucide-react";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -34,7 +34,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         {/* Header/Logo */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-900">
-          <NavLink to="/" className="text-xl font-bold tracking-tight text-white">
+          <NavLink to="/dashboard" className="text-xl font-bold tracking-tight text-white">
             Music<span className="text-emerald-500">Sense</span>
           </NavLink>
           {/* Close button on mobile */}
@@ -48,25 +48,39 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-grow px-4 py-6 space-y-1.5" aria-label="Dashboard Navigation">
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.path}
-              end={item.path === "/dashboard"}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-205 border border-transparent ${
-                  isActive
-                    ? "text-emerald-400 bg-emerald-600/10 border-emerald-500/10"
-                    : "text-gray-400 hover:text-white hover:bg-gray-900"
-                }`
-              }
-            >
-              {item.icon}
-              {item.name}
-            </NavLink>
-          ))}
+        <nav className="flex-grow px-4 py-6 flex flex-col justify-between" aria-label="Dashboard Navigation">
+          <div className="space-y-1.5">
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                end={item.path === "/dashboard"}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-205 border border-transparent ${
+                    isActive
+                      ? "text-emerald-400 bg-emerald-600/10 border-emerald-500/10"
+                      : "text-gray-400 hover:text-white hover:bg-gray-900"
+                  }`
+                }
+              >
+                {item.icon}
+                {item.name}
+              </NavLink>
+            ))}
+          </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={() => {
+              localStorage.removeItem("token");
+              window.location.href = "/login";
+            }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 w-full transition duration-200 border border-transparent cursor-pointer"
+          >
+            <LogOut className="h-5 w-5" />
+            Logout
+          </button>
         </nav>
 
         {/* Sidebar Footer */}
